@@ -2,13 +2,13 @@ language: android
 
 android:
     components:
+        - platform-tools
         - tools
         - build-tools-24.0.0
         - android-24
         - extra-google-google_play_services
         - extra-google-m2repository
         - extra-android-m2repository
-        - platform-tools
 
 notifications:
     email: false
@@ -38,4 +38,3 @@ before_script:
     - sudo service riak stop || true
     - sudo service rsync stop || true
     - sudo service x11-common stop || true
-    
