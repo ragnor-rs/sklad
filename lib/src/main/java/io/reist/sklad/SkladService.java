@@ -19,6 +19,9 @@ public interface SkladService {
      */
     boolean save(@NonNull StorageObject storageObject) throws IOException;
 
-    StorageObject load(@NonNull String name);
+    /**
+     * @return null     if an object with the given name doesn't exist
+     */
+    StorageObject load(@NonNull String name) throws IOException;
 
 }

@@ -1,5 +1,7 @@
 package io.reist.sklad;
 
+import android.support.annotation.NonNull;
+
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -22,10 +24,15 @@ public class SkladServiceTest {
 
     public static final String STORAGE_OBJECT_ONE = "object1";
 
+    @NonNull
+    private SimpleSkladService createSkladService() {
+        return new SimpleSkladService(new MemoryStorage());
+    }
+
     @Test
     public void testWrite() throws IOException {
 
-        SkladService sklad = new SimpleSkladService();
+        SkladService sklad = createSkladService();
 
         assertFalse(sklad.save(new StorageObject(STORAGE_OBJECT_ONE)));
 
@@ -36,7 +43,7 @@ public class SkladServiceTest {
     @Test(expected = IllegalStateException.class)
     public void testDepletedInputStream() throws IOException {
 
-        SkladService sklad = new SimpleSkladService();
+        SkladService sklad = createSkladService();
 
         StorageObject savedObject = new StorageObject(STORAGE_OBJECT_ONE);
         savedObject.setInputStream(new ByteArrayInputStream(TEST_DATA.getBytes("UTF-8")));
@@ -50,7 +57,7 @@ public class SkladServiceTest {
     @Test
     public void testRead() throws IOException {
 
-        SkladService sklad = new SimpleSkladService();
+        SkladService sklad = createSkladService();
 
         assertNull(sklad.load(STORAGE_OBJECT_ONE));
 
@@ -65,7 +72,7 @@ public class SkladServiceTest {
     @Test
     public void testReadAndWrite() throws IOException {
 
-        SkladService sklad = new SimpleSkladService();
+        SkladService sklad = createSkladService();
 
         StorageObject savedObject = new StorageObject(STORAGE_OBJECT_ONE);
         savedObject.setInputStream(new ByteArrayInputStream(TEST_DATA.getBytes("UTF-8")));
