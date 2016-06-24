@@ -20,7 +20,7 @@ public class MemoryStorageTest {
     private static final String TEST_OBJECT_NAME = "qwe";
 
     @NonNull
-    private MemoryStorage createStorage() {
+    private static MemoryStorage createStorage() {
         return new MemoryStorage();
     }
 

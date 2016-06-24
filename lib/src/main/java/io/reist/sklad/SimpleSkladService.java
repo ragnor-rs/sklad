@@ -11,6 +11,8 @@ import java.io.OutputStream;
  */
 public class SimpleSkladService implements SkladService {
 
+    public static final int BUFFER_SIZE = 1024;
+
     private final Storage storage;
     private final EncryptionProvider encryptionProvider;
 
@@ -45,7 +47,7 @@ public class SimpleSkladService implements SkladService {
 
                 try {
 
-                    byte[] buffer = new byte[1024];
+                    byte[] buffer = new byte[BUFFER_SIZE];
 
                     while (true) {
                         int numRead = inputStream.read(buffer);
@@ -114,6 +116,14 @@ public class SimpleSkladService implements SkladService {
         result.setInputStream(wrappedStream);
         return result;
 
+    }
+
+    Storage getStorage() {
+        return storage;
+    }
+
+    EncryptionProvider getEncryptionProvider() {
+        return encryptionProvider;
     }
 
 }

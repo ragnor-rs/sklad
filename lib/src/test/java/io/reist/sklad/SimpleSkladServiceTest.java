@@ -2,87 +2,89 @@ package io.reist.sklad;
 
 import android.support.annotation.NonNull;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import java.io.OutputStream;
 
 /**
  * Created by Reist on 24.06.16.
  */
 public class SimpleSkladServiceTest {
 
-    private static final String TEST_DATA = "sejfibfiaewoi";
-
-    public static final String STORAGE_OBJECT_ONE = "object1";
+    private static final String TEST_NAME = "zxc";
+    private static final byte[] TEST_DATA = new byte[] {1, 2, 3};
 
     @NonNull
-    private SimpleSkladService createSkladService() {
-        return new SimpleSkladService(new MemoryStorage(), new NoEncryptionProvider());
+    private static SimpleSkladService createSkladService() throws IOException {
+        Storage storage = Mockito.mock(Storage.class);
+        Mockito.when(storage.openOutputStream(Mockito.eq(TEST_NAME))).then(new Answer<OutputStream>() {
+
+            @Override
+            public OutputStream answer(InvocationOnMock invocation) throws Throwable {
+                return new ByteArrayOutputStream();
+            }
+
+        });
+        return new SimpleSkladService(
+                storage,
+                Mockito.mock(EncryptionProvider.class)
+        );
     }
 
     @Test
-    public void testWrite() throws IOException {
+    public void testSave() throws Exception {
 
-        SkladService sklad = createSkladService();
+        SimpleSkladService skladService = createSkladService();
 
-        assertFalse(sklad.save(new StorageObject(STORAGE_OBJECT_ONE)));
+        StorageObject storageObject = new StorageObject(TEST_NAME);
+        storageObject.setInputStream(new ByteArrayInputStream(TEST_DATA));
+        skladService.save(storageObject);
 
-        assertTrue(sklad.save(new StorageObject(STORAGE_OBJECT_ONE)));
+        Storage storage = skladService.getStorage();
+        Mockito.verify(storage).contains(TEST_NAME);
+        Mockito.verify(storage).openOutputStream(TEST_NAME);
 
-    }
+        EncryptionProvider encryptionProvider = skladService.getEncryptionProvider();
+        Mockito.verify(encryptionProvider).encrypt(Mockito.argThat(new BaseMatcher<byte[]>() {
 
-    @Test(expected = IllegalStateException.class)
-    public void testDepletedInputStream() throws IOException {
+            @Override
+            public boolean matches(Object item) {
+                byte[] data = (byte[]) item;
+                for (int i = 0; i < TEST_DATA.length; i++) {
+                    if (data[i] != TEST_DATA[i]) {
+                        return false;
+                    }
+                }
+                return true;
+            }
 
-        SkladService sklad = createSkladService();
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("<data-to-encrypt>");
+            }
 
-        StorageObject savedObject = new StorageObject(STORAGE_OBJECT_ONE);
-        savedObject.setInputStream(new ByteArrayInputStream(TEST_DATA.getBytes("UTF-8")));
-
-        sklad.save(savedObject);
-
-        sklad.save(savedObject); // second call should throw an exception
-
-    }
-
-    @Test
-    public void testRead() throws IOException {
-
-        SkladService sklad = createSkladService();
-
-        assertNull(sklad.load(STORAGE_OBJECT_ONE));
-
-        StorageObject savedObject = new StorageObject(STORAGE_OBJECT_ONE);
-        sklad.save(savedObject);
-
-        StorageObject loadedObject = sklad.load(STORAGE_OBJECT_ONE);
-        assertEquals(STORAGE_OBJECT_ONE, loadedObject.getName());
+        }), Mockito.eq(0), Mockito.eq(TEST_DATA.length));
 
     }
 
     @Test
-    public void testReadAndWrite() throws IOException {
+    public void testLoad() throws Exception {
 
-        SkladService sklad = createSkladService();
+        SimpleSkladService skladService = createSkladService();
 
-        StorageObject savedObject = new StorageObject(STORAGE_OBJECT_ONE);
-        savedObject.setInputStream(new ByteArrayInputStream(TEST_DATA.getBytes("UTF-8")));
-        sklad.save(savedObject);
+        StorageObject saved = new StorageObject(TEST_NAME);
+        saved.setInputStream(new ByteArrayInputStream(TEST_DATA));
+        skladService.save(saved);
 
-        StorageObject loadedObject = sklad.load(STORAGE_OBJECT_ONE);
-        InputStream inputStream = loadedObject.getInputStream();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        assertEquals(TEST_DATA, reader.readLine());
+        StorageObject load = skladService.load(TEST_NAME);
 
     }
 

@@ -13,7 +13,7 @@ public class NoEncryptionProviderTest {
     public static final byte[] ORIGINAL_DATA = new byte[] {1, 2, 3};
     public static final byte[] ENCRYPTED_DATA = new byte[] {1, 2, 3};
 
-    private EncryptionProvider createEncryptionProvider() {
+    private static EncryptionProvider createEncryptionProvider() {
         return new NoEncryptionProvider();
     }
 
