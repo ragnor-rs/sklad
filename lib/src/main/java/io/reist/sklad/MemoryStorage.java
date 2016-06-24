@@ -15,6 +15,11 @@ public class MemoryStorage implements Storage {
     private final Map<String, DataHolder> dataMap = new HashMap<>();
 
     @Override
+    public boolean contains(@NonNull String name) {
+        return dataMap.containsKey(name);
+    }
+
+    @Override
     public OutputStream openOutputStream(final String name) {
         return new ByteArrayOutputStream() {
 
@@ -28,11 +33,6 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public boolean contains(@NonNull String name) {
-        return dataMap.containsKey(name);
-    }
-
-    @Override
     public InputStream openInputStream(String name) {
         DataHolder dataHolder = dataMap.get(name);
         return dataHolder == null ?
@@ -40,10 +40,14 @@ public class MemoryStorage implements Storage {
                 new ByteArrayInputStream(dataHolder.data, 0, dataHolder.length);
     }
 
-    private static class DataHolder {
+    Map<String, DataHolder> getDataMap() {
+        return dataMap;
+    }
 
-        private final byte[] data;
-        private final int length;
+    static class DataHolder {
+
+        final byte[] data;
+        final int length;
 
         public DataHolder(byte[] data, int length) {
             this.data = data;

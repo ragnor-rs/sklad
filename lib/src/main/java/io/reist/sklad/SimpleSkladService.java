@@ -14,7 +14,10 @@ public class SimpleSkladService implements SkladService {
     private final Storage storage;
     private final EncryptionProvider encryptionProvider;
 
-    public SimpleSkladService(Storage storage, EncryptionProvider encryptionProvider) {
+    public SimpleSkladService(
+            @NonNull Storage storage,
+            @NonNull EncryptionProvider encryptionProvider
+    ) {
         this.storage = storage;
         this.encryptionProvider = encryptionProvider;
     }

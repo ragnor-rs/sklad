@@ -11,9 +11,9 @@ import java.io.OutputStream;
  */
 public interface Storage {
 
-    OutputStream openOutputStream(String name) throws IOException;
-
     boolean contains(@NonNull String name);
+
+    OutputStream openOutputStream(String name) throws IOException;
 
     InputStream openInputStream(String name) throws IOException;
 
