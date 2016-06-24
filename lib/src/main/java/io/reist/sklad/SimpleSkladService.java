@@ -12,9 +12,11 @@ import java.io.OutputStream;
 public class SimpleSkladService implements SkladService {
 
     private final Storage storage;
+    private final EncryptionProvider encryptionProvider;
 
-    public SimpleSkladService(Storage storage) {
+    public SimpleSkladService(Storage storage, EncryptionProvider encryptionProvider) {
         this.storage = storage;
+        this.encryptionProvider = encryptionProvider;
     }
 
     @Override
@@ -47,6 +49,7 @@ public class SimpleSkladService implements SkladService {
                         if (numRead == -1) {
                             break;
                         }
+                        encryptionProvider.encrypt(buffer, 0, numRead);
                         outputStream.write(buffer, 0, numRead);
                     }
 
@@ -70,14 +73,42 @@ public class SimpleSkladService implements SkladService {
     @Override
     public StorageObject load(@NonNull String name) throws IOException {
 
-        InputStream inputStream = storage.openInputStream(name);
+        final InputStream inputStream = storage.openInputStream(name);
 
         if (inputStream == null) {
             return null;
         }
 
+        InputStream wrappedStream = new InputStream() {
+
+            private final byte[] singleByte = new byte[1];
+
+            @Override
+            public int read() throws IOException {
+                int b = inputStream.read();
+                if (b == -1) {
+                    return -1;
+                }
+                singleByte[0] = (byte) b;
+                return encryptionProvider.decrypt(singleByte, 0, 1);
+            }
+
+            @Override
+            public int read(byte[] b) throws IOException {
+                int numRead = inputStream.read(b);
+                return encryptionProvider.decrypt(b, 0, numRead);
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                int numRead = inputStream.read(b, off, len);
+                return encryptionProvider.decrypt(b, off, numRead);
+            }
+
+        };
+
         StorageObject result = new StorageObject(name);
-        result.setInputStream(inputStream);
+        result.setInputStream(wrappedStream);
         return result;
 
     }

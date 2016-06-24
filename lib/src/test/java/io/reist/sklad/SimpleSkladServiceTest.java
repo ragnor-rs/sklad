@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by Reist on 24.06.16.
  */
-public class SkladServiceTest {
+public class SimpleSkladServiceTest {
 
     private static final String TEST_DATA = "sejfibfiaewoi";
 
@@ -26,7 +26,7 @@ public class SkladServiceTest {
 
     @NonNull
     private SimpleSkladService createSkladService() {
-        return new SimpleSkladService(new MemoryStorage());
+        return new SimpleSkladService(new MemoryStorage(), new NoEncryptionProvider());
     }
 
     @Test
