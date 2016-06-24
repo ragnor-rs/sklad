@@ -2,13 +2,13 @@ language: android
 
 android:
     components:
-        - platform-tools
         - tools
         - build-tools-24.0.0
         - android-24
         - extra-google-google_play_services
         - extra-google-m2repository
         - extra-android-m2repository
+        - platform-tools
 
 notifications:
     email: false
@@ -16,7 +16,7 @@ notifications:
 script:
     - jdk_switcher use oraclejdk8
     - export GRADLE_OPTS="-Xmx1536m -Xms768m -Xss32m"
-    - ./gradlew clean build connectedCheck
+    - ./gradlew clean build
 
 before_cache:
     - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
