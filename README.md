@@ -1,2 +1,2 @@
-# sklad
-Sklad - a file storage library with encryption and streaming support
+# Sklad
+A file storage library with encryption and streaming support
