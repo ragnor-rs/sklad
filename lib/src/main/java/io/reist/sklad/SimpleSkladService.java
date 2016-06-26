@@ -115,10 +115,12 @@ public class SimpleSkladService implements SkladService {
 
     }
 
+    @NonNull
     Storage getStorage() {
         return storage;
     }
 
+    @NonNull
     EncryptionProvider getEncryptionProvider() {
         return encryptionProvider;
     }

@@ -122,10 +122,12 @@ public class CachedStorage implements Storage {
         }
     }
 
+    @NonNull
     Storage getLocalStorage() {
         return localStorage;
     }
 
+    @NonNull
     Storage getRemoteStorage() {
         return remoteStorage;
     }
