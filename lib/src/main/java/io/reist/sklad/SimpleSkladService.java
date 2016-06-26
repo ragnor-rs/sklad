@@ -24,6 +24,7 @@ public class SimpleSkladService implements SkladService {
         this.encryptionProvider = encryptionProvider;
     }
 
+    @SuppressWarnings("TryFinallyCanBeTryWithResources")
     @Override
     public boolean save(@NonNull StorageObject storageObject) throws IOException {
 
@@ -34,10 +35,6 @@ public class SimpleSkladService implements SkladService {
         boolean overwritten = storage.contains(storageObject.getName());
 
         OutputStream outputStream = storage.openOutputStream(storageObject.getName());
-
-        if (outputStream == null) {
-            throw new IllegalStateException("Output stream is null");
-        }
 
         try {
 

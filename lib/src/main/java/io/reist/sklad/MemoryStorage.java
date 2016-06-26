@@ -19,8 +19,9 @@ public class MemoryStorage implements Storage {
         return dataMap.containsKey(name);
     }
 
+    @NonNull
     @Override
-    public OutputStream openOutputStream(final String name) {
+    public OutputStream openOutputStream(@NonNull final String name) {
         return new ByteArrayOutputStream() {
 
             @Override
@@ -33,7 +34,7 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public InputStream openInputStream(String name) {
+    public InputStream openInputStream(@NonNull String name) {
         DataHolder dataHolder = dataMap.get(name);
         return dataHolder == null ?
                 null :
