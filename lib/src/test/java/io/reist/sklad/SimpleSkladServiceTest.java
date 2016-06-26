@@ -87,8 +87,7 @@ public class SimpleSkladServiceTest {
 
         SimpleSkladService skladService = createSkladService();
 
-        StorageObject storageObject = new StorageObject(TEST_NAME);
-        storageObject.setInputStream(new ByteArrayInputStream(TEST_DATA));
+        StorageObject storageObject = new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA));
         skladService.save(storageObject);
 
         Storage storage = skladService.getStorage();
@@ -111,8 +110,7 @@ public class SimpleSkladServiceTest {
 
         SimpleSkladService skladService = createSkladService();
 
-        StorageObject saved = new StorageObject(TEST_NAME);
-        saved.setInputStream(new ByteArrayInputStream(TEST_DATA));
+        StorageObject saved = new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA));
         skladService.save(saved);
 
         StorageObject loaded = skladService.load(TEST_NAME);

@@ -1,5 +1,7 @@
 package io.reist.sklad;
 
+import android.support.annotation.NonNull;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,18 +18,21 @@ public class CachedSkladServiceTest {
     private static final String TEST_NAME = "z12";
     private static final byte[] TEST_DATA = new byte[] {17, 25, 33};
 
-    @Test
-    public void testSave() throws Exception {
-
-        CachedSkladService cachedSkladService = new CachedSkladService(
+    @NonNull
+    private CachedSkladService createCachedSkladService() {
+        return new CachedSkladService(
                 new MemoryStorage(),
                 new MemoryStorage(),
                 new NoEncryptionProvider()
         );
+    }
 
-        StorageObject storageObject = new StorageObject(TEST_NAME);
-        storageObject.setInputStream(new ByteArrayInputStream(TEST_DATA));
-        cachedSkladService.save(storageObject);
+    @Test
+    public void testSave() throws Exception {
+
+        CachedSkladService cachedSkladService = createCachedSkladService();
+
+        cachedSkladService.save(new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA)));
 
         byte[] buffer = new byte[TEST_DATA.length];
 
@@ -42,15 +47,9 @@ public class CachedSkladServiceTest {
     @Test
     public void testLoad() throws Exception {
 
-        CachedSkladService cachedSkladService = new CachedSkladService(
-                new MemoryStorage(),
-                new MemoryStorage(),
-                new NoEncryptionProvider()
-        );
+        CachedSkladService cachedSkladService = createCachedSkladService();
 
-        StorageObject saved = new StorageObject(TEST_NAME);
-        saved.setInputStream(new ByteArrayInputStream(TEST_DATA));
-        cachedSkladService.save(saved);
+        cachedSkladService.save(new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA)));
 
         OutputStream outputStream = cachedSkladService.getRemoteStorage().openOutputStream(TEST_NAME);
         outputStream.write(TEST_DATA);

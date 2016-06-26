@@ -109,9 +109,7 @@ public class SimpleSkladService implements SkladService {
 
         };
 
-        StorageObject result = new StorageObject(name);
-        result.setInputStream(wrappedStream);
-        return result;
+        return new StorageObject(name, wrappedStream);
 
     }
 

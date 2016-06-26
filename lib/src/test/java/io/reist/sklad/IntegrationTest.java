@@ -4,12 +4,11 @@ import android.support.annotation.NonNull;
 
 import org.junit.Test;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -20,9 +19,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class IntegrationTest {
 
-    private static final String TEST_DATA = "sejfibfiaewoi";
-
-    public static final String STORAGE_OBJECT_ONE = "object1";
+    private static final String TEST_NAME = "z12";
+    private static final byte[] TEST_DATA = new byte[] {17, 25, 33};
 
     @NonNull
     private static SimpleSkladService createSkladService() {
@@ -34,9 +32,9 @@ public class IntegrationTest {
 
         SkladService sklad = createSkladService();
 
-        assertFalse(sklad.save(new StorageObject(STORAGE_OBJECT_ONE)));
+        assertFalse(sklad.save(new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA))));
 
-        assertTrue(sklad.save(new StorageObject(STORAGE_OBJECT_ONE)));
+        assertTrue(sklad.save(new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA))));
 
     }
 
@@ -45,8 +43,7 @@ public class IntegrationTest {
 
         SkladService sklad = createSkladService();
 
-        StorageObject savedObject = new StorageObject(STORAGE_OBJECT_ONE);
-        savedObject.setInputStream(new ByteArrayInputStream(TEST_DATA.getBytes("UTF-8")));
+        StorageObject savedObject = new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA));
 
         sklad.save(savedObject);
 
@@ -59,13 +56,13 @@ public class IntegrationTest {
 
         SkladService sklad = createSkladService();
 
-        assertNull(sklad.load(STORAGE_OBJECT_ONE));
+        assertNull(sklad.load(TEST_NAME));
 
-        StorageObject savedObject = new StorageObject(STORAGE_OBJECT_ONE);
+        StorageObject savedObject = new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA));
         sklad.save(savedObject);
 
-        StorageObject loadedObject = sklad.load(STORAGE_OBJECT_ONE);
-        assertEquals(STORAGE_OBJECT_ONE, loadedObject.getName());
+        StorageObject loadedObject = sklad.load(TEST_NAME);
+        assertEquals(TEST_NAME, loadedObject.getName());
 
     }
 
@@ -74,15 +71,15 @@ public class IntegrationTest {
 
         SkladService sklad = createSkladService();
 
-        StorageObject savedObject = new StorageObject(STORAGE_OBJECT_ONE);
-        savedObject.setInputStream(new ByteArrayInputStream(TEST_DATA.getBytes("UTF-8")));
+        StorageObject savedObject = new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA));
         sklad.save(savedObject);
 
-        StorageObject loadedObject = sklad.load(STORAGE_OBJECT_ONE);
+        StorageObject loadedObject = sklad.load(TEST_NAME);
         InputStream inputStream = loadedObject.getInputStream();
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        assertEquals(TEST_DATA, reader.readLine());
+        byte[] buffer = new byte[TEST_DATA.length];
+        assertEquals(TEST_DATA.length, inputStream.read(buffer));
+        assertArrayEquals(TEST_DATA, buffer);
 
     }
 

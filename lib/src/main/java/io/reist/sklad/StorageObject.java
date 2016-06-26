@@ -15,16 +15,13 @@ public class StorageObject {
 
     private boolean inputStreamDepleted;
 
-    public StorageObject(@NonNull String name) {
+    public StorageObject(@NonNull String name, @NonNull InputStream inputStream) {
         this.name = name;
-    }
-
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    public void setInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
+    }
+
+    InputStream getInputStream() {
+        return inputStream;
     }
 
     public void setInputStreamDepleted(boolean inputStreamDepleted) {
@@ -36,7 +33,7 @@ public class StorageObject {
         return name;
     }
 
-    public boolean isInputStreamDepleted() {
+    boolean isInputStreamDepleted() {
         return inputStreamDepleted;
     }
 
