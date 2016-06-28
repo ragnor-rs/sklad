@@ -4,26 +4,26 @@ import android.support.annotation.NonNull;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static io.reist.sklad.TestUtils.TEST_DATA;
+import static io.reist.sklad.TestUtils.TEST_NAME;
+import static io.reist.sklad.TestUtils.assertTestObject;
+import static io.reist.sklad.TestUtils.saveTestObject;
+
 /**
  * Created by Reist on 24.06.16.
  */
-public class SimpleSkladServiceTest {
-
-    private static final String TEST_NAME = "zxc";
-    private static final byte[] TEST_DATA = new byte[] {1, 2, 3};
+public class SimpleServiceTest {
 
     public static final BaseMatcher<byte[]> TEST_DATA_MATCHER = new BaseMatcher<byte[]>() {
 
@@ -87,8 +87,7 @@ public class SimpleSkladServiceTest {
 
         SimpleSkladService skladService = createSkladService();
 
-        StorageObject storageObject = new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA));
-        skladService.save(storageObject);
+        saveTestObject(skladService);
 
         Storage storage = skladService.getStorage();
         Mockito.verify(storage).contains(TEST_NAME);
@@ -98,7 +97,7 @@ public class SimpleSkladServiceTest {
 
     }
 
-    private void verifyEncryption(SimpleSkladService skladService) {
+    private static void verifyEncryption(SimpleSkladService skladService) {
         EncryptionProvider encryptionProvider = skladService.getEncryptionProvider();
         Mockito.verify(encryptionProvider).encrypt(
                 Mockito.argThat(TEST_DATA_MATCHER), Mockito.eq(0), Mockito.eq(TEST_DATA.length)
@@ -107,24 +106,10 @@ public class SimpleSkladServiceTest {
 
     @Test
     public void testLoad() throws Exception {
-
         SimpleSkladService skladService = createSkladService();
-
-        StorageObject saved = new StorageObject(TEST_NAME, new ByteArrayInputStream(TEST_DATA));
-        skladService.save(saved);
-
-        StorageObject loaded = skladService.load(TEST_NAME);
-        Assert.assertEquals(saved.getName(), loaded.getName());
-        Assert.assertFalse(loaded.isInputStreamDepleted());
-
-        BufferedInputStream inputStream = new BufferedInputStream(loaded.getInputStream());
-        byte[] buffer = new byte[TEST_DATA.length];
-        int len = inputStream.read(buffer);
-        Assert.assertEquals(TEST_DATA.length, len);
-        inputStream.close();
-
+        saveTestObject(skladService);
+        assertTestObject(skladService);
         verifyEncryption(skladService);
-
     }
 
 }
