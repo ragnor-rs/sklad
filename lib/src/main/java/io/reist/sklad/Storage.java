@@ -12,7 +12,7 @@ import java.io.OutputStream;
  */
 public interface Storage {
 
-    boolean contains(@NonNull String name);
+    boolean contains(@NonNull String name) throws IOException;
 
     @NonNull
     OutputStream openOutputStream(@NonNull String name) throws IOException;

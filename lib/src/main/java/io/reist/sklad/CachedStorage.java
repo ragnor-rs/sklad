@@ -20,15 +20,15 @@ public class CachedStorage implements Storage {
     }
 
     @Override
-    public boolean contains(@NonNull String name) {
+    public boolean contains(@NonNull String name) throws IOException {
         return containsInLocalStorage(name) || containsInRemoteStorage(name);
     }
 
-    public boolean containsInRemoteStorage(@NonNull String name) {
+    public boolean containsInRemoteStorage(@NonNull String name) throws IOException {
         return remoteStorage.contains(name);
     }
 
-    public boolean containsInLocalStorage(@NonNull String name) {
+    public boolean containsInLocalStorage(@NonNull String name) throws IOException {
         return localStorage.contains(name);
     }
 

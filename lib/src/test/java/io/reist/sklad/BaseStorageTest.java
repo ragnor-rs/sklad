@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 
 import org.junit.Test;
 
+import java.io.IOException;
+
 import static io.reist.sklad.TestUtils.assertTestObject;
 import static io.reist.sklad.TestUtils.saveTestObject;
 import static org.junit.Assert.assertFalse;
@@ -30,6 +32,6 @@ public abstract class BaseStorageTest<S extends Storage> {
     }
 
     @NonNull
-    protected abstract S createStorage();
+    protected abstract S createStorage() throws IOException;
 
 }
