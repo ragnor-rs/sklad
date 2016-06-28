@@ -41,11 +41,6 @@ public class MemoryStorage implements Storage {
                 new ByteArrayInputStream(dataHolder.data, 0, dataHolder.length);
     }
 
-    @NonNull
-    Map<String, DataHolder> getDataMap() {
-        return dataMap;
-    }
-
     static class DataHolder {
 
         final byte[] data;
