@@ -10,7 +10,7 @@ public class SimpleServiceIntegrationTest extends BaseSkladServiceTest<SimpleSkl
     @Override
     @NonNull
     protected SimpleSkladService createSkladService() {
-        return new SimpleSkladService(new MemoryStorage(), new NoEncryptionProvider());
+        return new SimpleSkladService(new MemoryStorage());
     }
 
 }

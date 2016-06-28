@@ -2,8 +2,6 @@ package io.reist.sklad;
 
 import android.support.annotation.NonNull;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -25,29 +23,8 @@ import static io.reist.sklad.TestUtils.saveTestObject;
  */
 public class SimpleServiceTest {
 
-    public static final BaseMatcher<byte[]> TEST_DATA_MATCHER = new BaseMatcher<byte[]>() {
-
-        @Override
-        public boolean matches(Object item) {
-            byte[] data = (byte[]) item;
-            for (int i = 0; i < TEST_DATA.length; i++) {
-                if (data[i] != TEST_DATA[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public void describeTo(Description description) {
-            description.appendText("<data-to-encrypt>");
-        }
-
-    };
-
     @NonNull
     private static SimpleSkladService createSkladService() throws IOException {
-
         Storage storage = Mockito.mock(Storage.class);
         Mockito.when(storage.openOutputStream(Mockito.eq(TEST_NAME))).then(new Answer<OutputStream>() {
 
@@ -65,21 +42,7 @@ public class SimpleServiceTest {
             }
 
         });
-
-        EncryptionProvider encryptionProvider = Mockito.mock(EncryptionProvider.class);
-        Mockito.when(encryptionProvider.decrypt(
-                Mockito.argThat(TEST_DATA_MATCHER), Mockito.eq(0), Mockito.eq(TEST_DATA.length)
-        )).then(new Answer<Integer>() {
-
-            @Override
-            public Integer answer(InvocationOnMock invocation) throws Throwable {
-                return TEST_DATA.length;
-            }
-
-        });
-
-        return new SimpleSkladService(storage, encryptionProvider);
-
+        return new SimpleSkladService(storage);
     }
 
     @Test
@@ -93,15 +56,6 @@ public class SimpleServiceTest {
         Mockito.verify(storage).contains(TEST_NAME);
         Mockito.verify(storage).openOutputStream(TEST_NAME);
 
-        verifyEncryption(skladService);
-
-    }
-
-    private static void verifyEncryption(SimpleSkladService skladService) {
-        EncryptionProvider encryptionProvider = skladService.getEncryptionProvider();
-        Mockito.verify(encryptionProvider).encrypt(
-                Mockito.argThat(TEST_DATA_MATCHER), Mockito.eq(0), Mockito.eq(TEST_DATA.length)
-        );
     }
 
     @Test
@@ -109,7 +63,6 @@ public class SimpleServiceTest {
         SimpleSkladService skladService = createSkladService();
         saveTestObject(skladService);
         assertTestObject(skladService);
-        verifyEncryption(skladService);
     }
 
 }

@@ -14,14 +14,9 @@ public class SimpleSkladService implements SkladService {
     public static final int BUFFER_SIZE = 1024;
 
     private final Storage storage;
-    private final EncryptionProvider encryptionProvider;
 
-    public SimpleSkladService(
-            @NonNull Storage storage,
-            @NonNull EncryptionProvider encryptionProvider
-    ) {
+    public SimpleSkladService(@NonNull Storage storage) {
         this.storage = storage;
-        this.encryptionProvider = encryptionProvider;
     }
 
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
@@ -51,7 +46,6 @@ public class SimpleSkladService implements SkladService {
                         if (numRead == -1) {
                             break;
                         }
-                        encryptionProvider.encrypt(buffer, 0, numRead);
                         outputStream.write(buffer, 0, numRead);
                     }
 
@@ -81,46 +75,13 @@ public class SimpleSkladService implements SkladService {
             return null;
         }
 
-        InputStream wrappedStream = new InputStream() {
-
-            private final byte[] singleByte = new byte[1];
-
-            @Override
-            public int read() throws IOException {
-                int b = inputStream.read();
-                if (b == -1) {
-                    return -1;
-                }
-                singleByte[0] = (byte) b;
-                return encryptionProvider.decrypt(singleByte, 0, 1);
-            }
-
-            @Override
-            public int read(byte[] b) throws IOException {
-                int numRead = inputStream.read(b);
-                return encryptionProvider.decrypt(b, 0, numRead);
-            }
-
-            @Override
-            public int read(byte[] b, int off, int len) throws IOException {
-                int numRead = inputStream.read(b, off, len);
-                return encryptionProvider.decrypt(b, off, numRead);
-            }
-
-        };
-
-        return new StorageObject(name, wrappedStream);
+        return new StorageObject(name, inputStream);
 
     }
 
     @NonNull
     Storage getStorage() {
         return storage;
-    }
-
-    @NonNull
-    EncryptionProvider getEncryptionProvider() {
-        return encryptionProvider;
     }
 
 }
