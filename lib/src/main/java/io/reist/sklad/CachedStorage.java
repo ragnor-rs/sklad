@@ -65,6 +65,12 @@ public class CachedStorage implements Storage {
                 remoteStream.flush();
             }
 
+            @Override
+            public void close() throws IOException {
+                localStream.close();
+                remoteStream.close();
+            }
+
         };
 
     }
@@ -137,7 +143,7 @@ public class CachedStorage implements Storage {
 
         byte[] buffer = new byte[1024];
 
-        OutputStream outputStream = openOutputStream(name);
+        OutputStream outputStream = localStorage.openOutputStream(name);
 
         try {
 

@@ -20,7 +20,7 @@ public abstract class BaseStorageTest<S extends Storage> {
     public void testContains() throws Exception {
         S storage = createStorage();
         assertFalse(storage.contains(TestUtils.TEST_NAME));
-        storage.openOutputStream(TestUtils.TEST_NAME).flush();
+        saveTestObject(storage);
         assertTrue(storage.contains(TestUtils.TEST_NAME));
     }
 

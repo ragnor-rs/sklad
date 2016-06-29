@@ -58,6 +58,11 @@ public class EncryptedStorageTest extends BaseStorageTest<EncryptedStorage> {
             }
 
         });
+        return createEncryptedStorage(storage);
+    }
+
+    @NonNull
+    static EncryptedStorage createEncryptedStorage(Storage storage) {
         return new EncryptedStorage(storage, TEST_KEY);
     }
 

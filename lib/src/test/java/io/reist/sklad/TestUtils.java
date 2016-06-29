@@ -25,6 +25,7 @@ public class TestUtils {
         OutputStream outputStream = storage.openOutputStream(TEST_NAME);
         outputStream.write(TEST_DATA);
         outputStream.flush();
+        outputStream.close();
     }
 
     static boolean saveTestObject(SkladService skladService) throws IOException {

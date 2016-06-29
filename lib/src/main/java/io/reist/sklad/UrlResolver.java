@@ -3,7 +3,9 @@ package io.reist.sklad;
 import java.io.IOException;
 
 /**
- * Created by Reist on 28.06.16.
+ * Transforms {@link StorageObject} names into URLs.
+ *
+ * @see NetworkStorage
  */
 public interface UrlResolver {
 

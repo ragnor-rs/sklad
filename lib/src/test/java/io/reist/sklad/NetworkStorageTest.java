@@ -3,6 +3,7 @@ package io.reist.sklad;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -30,22 +31,19 @@ import okio.Buffer;
 )
 public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
 
-    private static final String TEST_URL = "test";
-
     private HttpUrl baseUrl;
 
     @NonNull
-    @Override
-    protected NetworkStorage createStorage() throws IOException {
+    static NetworkStorage createNetworkStorage(final HttpUrl baseUrl) throws IOException {
         UrlResolver urlResolver = Mockito.mock(UrlResolver.class);
-        Mockito.when(urlResolver.getUrlByName(TestUtils.TEST_NAME)).then(new Answer<String>() {
+        Mockito.when(urlResolver.getUrlByName(Mockito.anyString())).then(new Answer<String>() {
 
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable {
                 if (baseUrl == null) {
                     throw new IllegalStateException();
                 }
-                return baseUrl + TEST_URL;
+                return baseUrl.toString() + invocation.getArguments()[0].toString();
             }
 
         });
@@ -58,6 +56,12 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
             }
 
         };
+    }
+
+    @NonNull
+    @Override
+    protected NetworkStorage createStorage() throws IOException {
+        return createNetworkStorage(baseUrl);
     }
 
     @Override
@@ -92,6 +96,11 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
 
         server.shutdown();
 
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        baseUrl = null;
     }
 
 }
