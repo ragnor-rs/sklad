@@ -25,26 +25,26 @@ public class NetworkStorage implements Storage {
     }
 
     private Response request(@NonNull String name) throws IOException {
-        String url = urlResolver.getUrlByName(name);
+        String url = urlResolver.toUrl(name);
         Request request = new Request.Builder().url(url).build();
         return client.newCall(request).execute();
     }
 
     @Override
-    public boolean contains(@NonNull String name) throws IOException {
-        return request(name).isSuccessful();
+    public boolean contains(@NonNull String id) throws IOException {
+        return request(id).isSuccessful();
     }
 
     @NonNull
     @Override
-    public OutputStream openOutputStream(@NonNull String name) throws IOException {
+    public OutputStream openOutputStream(@NonNull String id) throws IOException {
         throw new UnsupportedOperationException();
     }
 
     @Nullable
     @Override
-    public InputStream openInputStream(@NonNull String name) throws IOException {
-        return request(name).body().byteStream();
+    public InputStream openInputStream(@NonNull String id) throws IOException {
+        return request(id).body().byteStream();
     }
 
 }

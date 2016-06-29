@@ -18,9 +18,6 @@ import java.io.OutputStream;
  */
 public class EncryptedStorageTest extends BaseStorageTest<EncryptedStorage> {
 
-    static final String TEST_KEY = "1d21ef261a";
-    static final byte[] ENCRYPTED_TEST_DATA = new byte[]{-127, -100, 97, 108, -120, -37, -48, 2};
-
     private boolean containsTestObject;
 
     @Before
@@ -54,7 +51,7 @@ public class EncryptedStorageTest extends BaseStorageTest<EncryptedStorage> {
 
             @Override
             public InputStream answer(InvocationOnMock invocation) throws Throwable {
-                return new ByteArrayInputStream(ENCRYPTED_TEST_DATA);
+                return new ByteArrayInputStream(TestUtils.CIPHER_TEST_DATA);
             }
 
         });
@@ -63,7 +60,7 @@ public class EncryptedStorageTest extends BaseStorageTest<EncryptedStorage> {
 
     @NonNull
     static EncryptedStorage createEncryptedStorage(Storage storage) {
-        return new EncryptedStorage(storage, TEST_KEY);
+        return new EncryptedStorage(storage, TestUtils.CIPHER_TEST_KEY);
     }
 
 }

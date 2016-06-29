@@ -15,27 +15,27 @@ public class MemoryStorage implements Storage {
     private final Map<String, DataHolder> dataMap = new HashMap<>();
 
     @Override
-    public boolean contains(@NonNull String name) {
-        return dataMap.containsKey(name);
+    public boolean contains(@NonNull String id) {
+        return dataMap.containsKey(id);
     }
 
     @NonNull
     @Override
-    public OutputStream openOutputStream(@NonNull final String name) {
+    public OutputStream openOutputStream(@NonNull final String id) {
         return new ByteArrayOutputStream() {
 
             @Override
             public void flush() throws IOException {
                 super.flush();
-                dataMap.put(name, new DataHolder(toByteArray(), size()));
+                dataMap.put(id, new DataHolder(toByteArray(), size()));
             }
 
         };
     }
 
     @Override
-    public InputStream openInputStream(@NonNull String name) {
-        DataHolder dataHolder = dataMap.get(name);
+    public InputStream openInputStream(@NonNull String id) {
+        DataHolder dataHolder = dataMap.get(id);
         return dataHolder == null ?
                 null :
                 new ByteArrayInputStream(dataHolder.data, 0, dataHolder.length);

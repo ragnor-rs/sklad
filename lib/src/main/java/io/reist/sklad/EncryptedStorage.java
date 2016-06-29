@@ -32,8 +32,8 @@ public class EncryptedStorage implements Storage {
     }
 
     @Override
-    public boolean contains(@NonNull String name) throws IOException {
-        return wrappedStorage.contains(name);
+    public boolean contains(@NonNull String id) throws IOException {
+        return wrappedStorage.contains(id);
     }
 
     @NonNull
@@ -47,10 +47,10 @@ public class EncryptedStorage implements Storage {
 
     @NonNull
     @Override
-    public OutputStream openOutputStream(@NonNull String name) throws IOException {
+    public OutputStream openOutputStream(@NonNull String id) throws IOException {
         try {
             Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, key);
-            OutputStream outputStream = wrappedStorage.openOutputStream(name);
+            OutputStream outputStream = wrappedStorage.openOutputStream(id);
             return new CipherOutputStream(outputStream, cipher);
         } catch (GeneralSecurityException e) {
             throw new IOException(e);
@@ -59,10 +59,10 @@ public class EncryptedStorage implements Storage {
 
     @Nullable
     @Override
-    public InputStream openInputStream(@NonNull String name) throws IOException {
+    public InputStream openInputStream(@NonNull String id) throws IOException {
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
-            InputStream inputStream = wrappedStorage.openInputStream(name);
+            InputStream inputStream = wrappedStorage.openInputStream(id);
             return new CipherInputStream(inputStream, cipher);
         } catch (GeneralSecurityException e) {
             throw new IOException(e);

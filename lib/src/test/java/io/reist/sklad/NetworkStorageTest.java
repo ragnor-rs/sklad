@@ -13,7 +13,6 @@ import org.robolectric.annotation.Config;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
@@ -36,7 +35,7 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
     @NonNull
     static NetworkStorage createNetworkStorage(final HttpUrl baseUrl) throws IOException {
         UrlResolver urlResolver = Mockito.mock(UrlResolver.class);
-        Mockito.when(urlResolver.getUrlByName(Mockito.anyString())).then(new Answer<String>() {
+        Mockito.when(urlResolver.toUrl(Mockito.anyString())).then(new Answer<String>() {
 
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable {
@@ -47,15 +46,7 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
             }
 
         });
-        return new NetworkStorage(urlResolver) {
-
-            @NonNull
-            @Override
-            public OutputStream openOutputStream(@NonNull String name) throws IOException {
-                return Mockito.mock(OutputStream.class);
-            }
-
-        };
+        return new TestNetworkStorage(urlResolver);
     }
 
     @NonNull

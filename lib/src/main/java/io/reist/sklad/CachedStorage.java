@@ -20,8 +20,8 @@ public class CachedStorage implements Storage {
     }
 
     @Override
-    public boolean contains(@NonNull String name) throws IOException {
-        return containsInLocalStorage(name) || containsInRemoteStorage(name);
+    public boolean contains(@NonNull String id) throws IOException {
+        return containsInLocalStorage(id) || containsInRemoteStorage(id);
     }
 
     public boolean containsInRemoteStorage(@NonNull String name) throws IOException {
@@ -34,10 +34,10 @@ public class CachedStorage implements Storage {
 
     @NonNull
     @Override
-    public OutputStream openOutputStream(@NonNull String name) throws IOException {
+    public OutputStream openOutputStream(@NonNull String id) throws IOException {
 
-        final OutputStream localStream = localStorage.openOutputStream(name);
-        final OutputStream remoteStream = remoteStorage.openOutputStream(name);
+        final OutputStream localStream = localStorage.openOutputStream(id);
+        final OutputStream remoteStream = remoteStorage.openOutputStream(id);
 
         return new OutputStream() {
 
@@ -76,13 +76,13 @@ public class CachedStorage implements Storage {
     }
 
     @Override
-    public InputStream openInputStream(@NonNull String name) throws IOException {
-        if (containsInLocalStorage(name)) {
-            return localStorage.openInputStream(name);
-        } else if (containsInRemoteStorage(name)) {
+    public InputStream openInputStream(@NonNull String id) throws IOException {
+        if (containsInLocalStorage(id)) {
+            return localStorage.openInputStream(id);
+        } else if (containsInRemoteStorage(id)) {
 
-            final InputStream remoteStream = remoteStorage.openInputStream(name);
-            final OutputStream localStream = remoteStorage.openOutputStream(name);
+            final InputStream remoteStream = remoteStorage.openInputStream(id);
+            final OutputStream localStream = remoteStorage.openOutputStream(id);
 
             if (remoteStream == null) {
                 throw new IllegalStateException("Remote stream is null");

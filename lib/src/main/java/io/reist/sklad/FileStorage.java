@@ -24,20 +24,20 @@ public class FileStorage implements Storage {
     }
 
     @Override
-    public boolean contains(@NonNull String name) throws IOException {
-        return getFile(name).exists();
+    public boolean contains(@NonNull String id) throws IOException {
+        return getFile(id).exists();
     }
 
     @NonNull
     @Override
-    public OutputStream openOutputStream(@NonNull String name) throws IOException {
-        return new FileOutputStream(getFile(name));
+    public OutputStream openOutputStream(@NonNull String id) throws IOException {
+        return new FileOutputStream(getFile(id));
     }
 
     @Nullable
     @Override
-    public InputStream openInputStream(@NonNull String name) throws IOException {
-        return new FileInputStream(getFile(name));
+    public InputStream openInputStream(@NonNull String id) throws IOException {
+        return new FileInputStream(getFile(id));
     }
 
     private File getFile(String name) throws IOException {

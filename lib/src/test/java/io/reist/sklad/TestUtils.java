@@ -19,6 +19,9 @@ public class TestUtils {
     static final String TEST_NAME = "z12";
     static final byte[] TEST_DATA = new byte[] {17, 25, 33};
 
+    static final String CIPHER_TEST_KEY = "1d21ef261a";
+    static final byte[] CIPHER_TEST_DATA = new byte[]{-127, -100, 97, 108, -120, -37, -48, 2};
+
     private TestUtils() {}
 
     static void saveTestObject(Storage storage) throws IOException {
@@ -34,7 +37,7 @@ public class TestUtils {
 
     static void assertTestObject(SkladService skladService) throws IOException {
         StorageObject object = skladService.load(TEST_NAME);
-        assertEquals(TEST_NAME, object.getName());
+        assertEquals(TEST_NAME, object.getId());
         assertFalse(object.isInputStreamDepleted());
         assertInputStream(object.getInputStream(), TEST_DATA);
     }

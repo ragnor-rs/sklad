@@ -24,12 +24,12 @@ public class SimpleSkladService implements SkladService {
     public boolean save(@NonNull StorageObject storageObject) throws IOException {
 
         if (storageObject.isInputStreamDepleted()) {
-            throw new IllegalStateException("Input stream of " + storageObject.getName() + " is depleted");
+            throw new IllegalStateException("Input stream of " + storageObject.getId() + " is depleted");
         }
 
-        boolean overwritten = storage.contains(storageObject.getName());
+        boolean overwritten = storage.contains(storageObject.getId());
 
-        OutputStream outputStream = storage.openOutputStream(storageObject.getName());
+        OutputStream outputStream = storage.openOutputStream(storageObject.getId());
 
         try {
 
@@ -67,15 +67,15 @@ public class SimpleSkladService implements SkladService {
     }
 
     @Override
-    public StorageObject load(@NonNull String name) throws IOException {
+    public StorageObject load(@NonNull String id) throws IOException {
 
-        final InputStream inputStream = storage.openInputStream(name);
+        final InputStream inputStream = storage.openInputStream(id);
 
         if (inputStream == null) {
             return null;
         }
 
-        return new StorageObject(name, inputStream);
+        return new StorageObject(id, inputStream);
 
     }
 

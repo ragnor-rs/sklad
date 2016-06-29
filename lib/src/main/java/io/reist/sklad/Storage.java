@@ -12,12 +12,12 @@ import java.io.OutputStream;
  */
 public interface Storage {
 
-    boolean contains(@NonNull String name) throws IOException;
+    boolean contains(@NonNull String id) throws IOException;
 
     @NonNull
-    OutputStream openOutputStream(@NonNull String name) throws IOException;
+    OutputStream openOutputStream(@NonNull String id) throws IOException;
 
     @Nullable
-    InputStream openInputStream(@NonNull String name) throws IOException;
+    InputStream openInputStream(@NonNull String id) throws IOException;
 
 }

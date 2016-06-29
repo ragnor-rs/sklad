@@ -36,8 +36,8 @@ public class CachedSkladService implements SkladService {
     }
 
     @Override
-    public StorageObject load(@NonNull String name) throws IOException {
-        return remoteSkladService.load(name);
+    public StorageObject load(@NonNull String id) throws IOException {
+        return remoteSkladService.load(id);
     }
 
     @NonNull

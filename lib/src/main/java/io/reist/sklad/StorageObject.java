@@ -9,14 +9,14 @@ import java.io.InputStream;
  */
 public class StorageObject {
 
-    private String name;
+    private String id;
 
     private InputStream inputStream;
 
     private boolean inputStreamDepleted;
 
-    public StorageObject(@NonNull String name, @NonNull InputStream inputStream) {
-        this.name = name;
+    public StorageObject(@NonNull String id, @NonNull InputStream inputStream) {
+        this.id = id;
         this.inputStream = inputStream;
     }
 
@@ -24,13 +24,13 @@ public class StorageObject {
         return inputStream;
     }
 
-    public void setInputStreamDepleted(boolean inputStreamDepleted) {
+    void setInputStreamDepleted(boolean inputStreamDepleted) {
         this.inputStreamDepleted = inputStreamDepleted;
     }
 
     @NonNull
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 
     boolean isInputStreamDepleted() {
