@@ -21,7 +21,7 @@ public class ShadowNetworkSecurityPolicy {
 
     @SuppressWarnings("unused")
     @Implementation
-    public boolean isCleartextTrafficPermitted() {
+    public boolean isCleartextTrafficPermitted(String host) {
         return true;
     }
 
