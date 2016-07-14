@@ -20,7 +20,7 @@ public class StorageObject {
         this.inputStream = inputStream;
     }
 
-    InputStream getInputStream() {
+    public InputStream getInputStream() {
         return inputStream;
     }
 
