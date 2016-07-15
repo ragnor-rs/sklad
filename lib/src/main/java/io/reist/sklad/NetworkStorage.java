@@ -46,35 +46,42 @@ public class NetworkStorage implements Storage {
     @Nullable
     @Override
     public InputStream openInputStream(@NonNull String id) throws IOException {
-        ResponseBody body = request(id).body();
+        final ResponseBody body = request(id).body();
         final long contentLength = body.contentLength();
         final BufferedSource source = body.source();
         return new InputStream() {
 
+            private int position = 0;
+
             @Override
             public int read(byte[] b) throws IOException {
-                return source.read(b);
+                int numRead = source.read(b);
+                position += numRead;
+                return numRead;
             }
 
             @Override
             public int read(byte[] b, int off, int len) throws IOException {
-                return source.read(b, off, len);
+                int numRead = source.read(b, off, len);
+                position += numRead;
+                return numRead;
             }
 
             @Override
             public long skip(long n) throws IOException {
                 source.skip(n);
+                position += n;
                 return n;
             }
 
             @Override
             public int available() throws IOException {
-                return (int) contentLength;
+                return (int) contentLength - position;
             }
 
             @Override
             public void close() throws IOException {
-                source.close();
+                body.close();
             }
 
             @Override
@@ -94,10 +101,18 @@ public class NetworkStorage implements Storage {
 
             @Override
             public int read() throws IOException {
-                return source.readInt();
+                position++;
+                return source.readByte() & 0xFF;
             }
 
         };
+    }
+
+    @Override
+    public boolean delete(@NonNull String id) throws IOException {
+        String url = urlResolver.toUrl(id);
+        Request request = new Request.Builder().url(url).delete().build();
+        return client.newCall(request).execute().isSuccessful();
     }
 
 }

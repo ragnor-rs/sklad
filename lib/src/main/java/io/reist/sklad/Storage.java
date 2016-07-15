@@ -20,4 +20,6 @@ public interface Storage {
     @Nullable
     InputStream openInputStream(@NonNull String id) throws IOException;
 
+    boolean delete(@NonNull String id) throws IOException;
+
 }

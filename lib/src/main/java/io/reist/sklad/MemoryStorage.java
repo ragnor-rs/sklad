@@ -41,6 +41,11 @@ public class MemoryStorage implements Storage {
                 new ByteArrayInputStream(dataHolder.data, 0, dataHolder.length);
     }
 
+    @Override
+    public boolean delete(@NonNull String id) throws IOException {
+        return dataMap.remove(id) != null;
+    }
+
     static class DataHolder {
 
         final byte[] data;

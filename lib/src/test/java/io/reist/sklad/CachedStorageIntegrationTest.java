@@ -11,6 +11,7 @@ import org.robolectric.annotation.Config;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import okhttp3.HttpUrl;
@@ -21,7 +22,11 @@ import okio.Buffer;
 import static io.reist.sklad.TestUtils.TEST_NAME;
 import static io.reist.sklad.TestUtils.assertTestObject;
 import static io.reist.sklad.TestUtils.saveTestObject;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -176,6 +181,32 @@ public class CachedStorageIntegrationTest extends BaseStorageTest<CachedStorage>
         CachedStorage storage = createStorage();
         storage.cache(TEST_NAME);
         assertTestObject(storage.getLocalStorage());
+
+        server.shutdown();
+
+    }
+
+    @Test
+    public void testPartialCaching() throws Exception {
+
+        Buffer buffer = new Buffer();
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse());                     // contains data
+        server.enqueue(new MockResponse().setBody(buffer));     // respond with actual data
+        server.start();
+
+        baseUrl = server.url("/");
+
+        CachedStorage storage = createStorage();
+        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME);
+        assertNotNull(inputStream);
+        int b = inputStream.read();
+        assertNotEquals(-1, b);
+        inputStream.close();
+        InputStream localStream = storage.getLocalStorage().openInputStream(TestUtils.TEST_NAME);
+        assertNull(localStream);
 
         server.shutdown();
 

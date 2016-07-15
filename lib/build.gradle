@@ -23,6 +23,10 @@ android {
         disable 'InvalidPackage'
     }
 
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
 }
 
 def okhttpVersion = '3.4.1'

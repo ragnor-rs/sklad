@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,10 +38,19 @@ public class FileStorage implements Storage {
     @Nullable
     @Override
     public InputStream openInputStream(@NonNull String id) throws IOException {
-        return new FileInputStream(getFile(id));
+        try {
+            return new FileInputStream(getFile(id));
+        } catch (FileNotFoundException e) {
+            return null;
+        }
     }
 
-    private File getFile(String name) throws IOException {
+    @Override
+    public boolean delete(@NonNull String id) throws IOException {
+        return getFile(id).delete();
+    }
+
+    protected File getFile(String name) throws IOException {
         return new File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), name);
     }
 

@@ -63,10 +63,15 @@ public class EncryptedStorage implements Storage {
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             InputStream inputStream = wrappedStorage.openInputStream(id);
-            return new CipherInputStream(inputStream, cipher);
+            return inputStream == null ? null : new CipherInputStream(inputStream, cipher);
         } catch (GeneralSecurityException e) {
             throw new IOException(e);
         }
+    }
+
+    @Override
+    public boolean delete(@NonNull String id) throws IOException {
+        return wrappedStorage.delete(id);
     }
 
 }

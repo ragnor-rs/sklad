@@ -1,6 +1,7 @@
 package io.reist.sklad;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +11,9 @@ import java.io.OutputStream;
  * Created by Reist on 25.06.16.
  */
 public class CachedStorage implements Storage {
-    
+
+    private static final String TAG = CachedStorage.class.getSimpleName();
+
     private final Storage remoteStorage;
     private final Storage localStorage;
 
@@ -76,13 +79,20 @@ public class CachedStorage implements Storage {
     }
 
     @Override
-    public InputStream openInputStream(@NonNull String id) throws IOException {
+    public InputStream openInputStream(@NonNull final String id) throws IOException {
         if (containsInLocalStorage(id)) {
+
+            Log.d(TAG, "Reading " + id + " from local cache");
+
             return localStorage.openInputStream(id);
+
         } else if (containsInRemoteStorage(id)) {
 
+
+            Log.d(TAG, "Reading " + id + " from remote storage");
+
             final InputStream remoteStream = remoteStorage.openInputStream(id);
-            final OutputStream localStream = remoteStorage.openOutputStream(id);
+            final OutputStream localStream = localStorage.openOutputStream(id);
 
             if (remoteStream == null) {
                 throw new IllegalStateException("Remote stream is null");
@@ -90,35 +100,91 @@ public class CachedStorage implements Storage {
 
             return new InputStream() {
 
+                public boolean skipped;
+
                 @Override
                 public int read() throws IOException {
                     int r = remoteStream.read();
-                    localStream.write(r);
+                    if (!skipped) {
+                        localStream.write(r); // cache iff no skips happened
+                    }
                     return r;
                 }
 
                 @Override
                 public int read(byte[] b) throws IOException {
                     int r = remoteStream.read(b);
-                    localStream.write(b);
+                    if (!skipped) {
+                        localStream.write(b); // cache iff no skips happened
+                    }
                     return r;
                 }
 
                 @Override
                 public int read(byte[] b, int off, int len) throws IOException {
                     int r = remoteStream.read(b, off, len);
-                    localStream.write(b, off, len);
+                    if (!skipped) {
+                        localStream.write(b, off, len);
+                    }
                     return r;
                 }
 
                 @Override
                 public void close() throws IOException {
+
                     try {
                         localStream.flush();
                     } finally {
                         localStream.close();
                         remoteStream.close();
                     }
+
+                    // todo allow partial caching - https://dreams.atlassian.net/browse/ZAN-674
+                    // don't leave partial files
+                    if (available() > 0 && !skipped) {
+                        removeCachedObject();
+                    }
+
+                }
+
+                private void removeCachedObject() throws IOException {
+                    if (localStorage.delete(id)) {
+                        Log.d(TAG, "Removed partial cache for " + id);
+                    } else if (localStorage.contains(id)) {
+                        throw new IOException("Cannot wipe partially cached object");
+                    } else {
+                        Log.d(TAG, "No cached objects for " + id);
+                    }
+                }
+
+                @Override
+                public long skip(long n) throws IOException {
+                    if (!skipped && n > 0) {
+                        skipped = true;
+                        Log.d(TAG, "Skipped " + n + " bytes in " + id);
+                        removeCachedObject();
+                    }
+                    return remoteStream.skip(n);
+                }
+
+                @Override
+                public int available() throws IOException {
+                    return remoteStream.available();
+                }
+
+                @Override
+                public synchronized void mark(int readlimit) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public synchronized void reset() throws IOException {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public boolean markSupported() {
+                    return false;
                 }
 
             };
@@ -126,6 +192,11 @@ public class CachedStorage implements Storage {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public boolean delete(@NonNull String id) throws IOException {
+        return remoteStorage.delete(id) && localStorage.delete(id);
     }
 
     @NonNull
