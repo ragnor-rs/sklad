@@ -196,7 +196,7 @@ public class CachedStorage implements Storage {
 
     @Override
     public boolean delete(@NonNull String id) throws IOException {
-        return remoteStorage.delete(id) && localStorage.delete(id);
+        return remoteStorage.delete(id) && purge(id);
     }
 
     @NonNull
@@ -210,7 +210,7 @@ public class CachedStorage implements Storage {
     }
 
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
-    public void cache(String name) throws IOException {
+    public void download(String name) throws IOException {
 
         byte[] buffer = new byte[1024];
 
@@ -238,6 +238,10 @@ public class CachedStorage implements Storage {
             outputStream.close();
         }
 
+    }
+
+    public boolean purge(@NonNull String id) throws IOException {
+        return localStorage.delete(id);
     }
 
 }

@@ -167,7 +167,7 @@ public class CachedStorageIntegrationTest extends BaseStorageTest<CachedStorage>
     }
 
     @Test
-    public void testCache() throws Exception {
+    public void testDownload() throws Exception {
 
         Buffer buffer = new Buffer();
         buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
@@ -179,7 +179,7 @@ public class CachedStorageIntegrationTest extends BaseStorageTest<CachedStorage>
         baseUrl = server.url("/");
 
         CachedStorage storage = createStorage();
-        storage.cache(TEST_NAME);
+        storage.download(TEST_NAME);
         assertTestObject(storage.getLocalStorage());
 
         server.shutdown();
