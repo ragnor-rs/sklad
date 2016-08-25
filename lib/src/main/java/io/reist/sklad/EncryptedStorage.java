@@ -59,11 +59,29 @@ public class EncryptedStorage implements Storage {
 
     @Nullable
     @Override
-    public InputStream openInputStream(@NonNull String id) throws IOException {
+    public InputStream openInputStream(@NonNull final String id) throws IOException {
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
-            InputStream inputStream = wrappedStorage.openInputStream(id);
-            return inputStream == null ? null : new CipherInputStream(inputStream, cipher);
+            final InputStream inputStream = wrappedStorage.openInputStream(id);
+            return inputStream == null ? null : new CipherInputStream(inputStream, cipher) {
+
+                @Override
+                public int available() throws IOException {
+                    return inputStream.available();
+                }
+
+                @Override
+                public long skip(long n) throws IOException {
+                    byte[] data = new byte[1024];
+                    int read;
+                    long skipped = 0;
+                    while ((read = read(data, 0, (int) Math.min(data.length, n - skipped))) > 0) {
+                        skipped += read;
+                    }
+                    return skipped;
+                }
+
+            };
         } catch (GeneralSecurityException e) {
             throw new IOException(e);
         }
