@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.ByteArrayInputStream;
@@ -22,7 +21,6 @@ import okio.Buffer;
 import static io.reist.sklad.TestUtils.TEST_NAME;
 import static io.reist.sklad.TestUtils.assertTestObject;
 import static io.reist.sklad.TestUtils.saveTestObject;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,7 +30,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by Reist on 26.06.16.
  */
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricGradle3TestRunner.class)
 @Config(
         constants = BuildConfig.class,
         sdk = Build.VERSION_CODES.LOLLIPOP,
