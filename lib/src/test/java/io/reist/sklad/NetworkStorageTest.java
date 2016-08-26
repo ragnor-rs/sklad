@@ -8,7 +8,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.ByteArrayInputStream;
@@ -22,7 +21,7 @@ import okio.Buffer;
 /**
  * Created by Reist on 28.06.16.
  */
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricGradle3TestRunner.class)
 @Config(
         constants = BuildConfig.class,
         sdk = Build.VERSION_CODES.LOLLIPOP,
