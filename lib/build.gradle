@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
 
 android {
 
@@ -49,4 +50,14 @@ dependencies {
 
     testCompile 'com.squareup.okhttp3:mockwebserver:' + okhttpVersion
 
+}
+
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
 }
