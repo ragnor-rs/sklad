@@ -215,4 +215,34 @@ public class CachedStorageIntegrationTest extends BaseStorageTest<CachedStorage>
         baseUrl = null;
     }
 
+    @Override
+    public void testDeleteAll() throws Exception {
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setResponseCode(404)); // force no files for cache
+        server.start();
+
+        baseUrl = server.url("/");
+
+        super.testDeleteAll();
+
+        server.shutdown();
+
+    }
+
+    @Override
+    public void testDelete() throws Exception {
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setResponseCode(404)); // force no files for cache
+        server.start();
+
+        baseUrl = server.url("/");
+
+        super.testDelete();
+
+        server.shutdown();
+
+    }
+
 }

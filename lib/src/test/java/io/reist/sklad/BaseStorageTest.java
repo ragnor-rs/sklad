@@ -34,4 +34,24 @@ public abstract class BaseStorageTest<S extends Storage> {
     @NonNull
     protected abstract S createStorage() throws IOException;
 
+    @Test
+    public void testDelete() throws Exception {
+        S storage = createStorage();
+        saveTestObject(storage);
+        try {
+            storage.delete(TestUtils.TEST_NAME);
+            assertFalse(storage.contains(TestUtils.TEST_NAME));
+        } catch (UnsupportedOperationException ignored) {}
+    }
+
+    @Test
+    public void testDeleteAll() throws Exception {
+        S storage = createStorage();
+        saveTestObject(storage);
+        try {
+            storage.deleteAll();
+            assertFalse(storage.contains(TestUtils.TEST_NAME));
+        } catch (UnsupportedOperationException ignored) {}
+    }
+
 }

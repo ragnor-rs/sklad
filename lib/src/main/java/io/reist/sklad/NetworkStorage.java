@@ -110,9 +110,12 @@ public class NetworkStorage implements Storage {
 
     @Override
     public boolean delete(@NonNull String id) throws IOException {
-        String url = urlResolver.toUrl(id);
-        Request request = new Request.Builder().url(url).delete().build();
-        return client.newCall(request).execute().isSuccessful();
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void deleteAll() throws IOException {
+        throw new UnsupportedOperationException();
     }
 
 }

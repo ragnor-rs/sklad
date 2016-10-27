@@ -1,5 +1,6 @@
 package io.reist.sklad;
 
+import android.app.Application;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
@@ -27,7 +28,8 @@ public class FileStorageTest extends BaseStorageTest<FileStorage> {
 
     @NonNull
     static FileStorage createFileStorage() {
-        return new FileStorage(RuntimeEnvironment.application);
+        Application application = RuntimeEnvironment.application;
+        return new FileStorage(application, application.getCacheDir());
     }
 
 }
