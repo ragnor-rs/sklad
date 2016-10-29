@@ -92,4 +92,9 @@ public class EncryptedStorage implements Storage {
         return wrappedStorage.delete(id);
     }
 
+    @Override
+    public void deleteAll() throws IOException {
+        wrappedStorage.deleteAll();
+    }
+
 }

@@ -93,4 +93,34 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
         baseUrl = null;
     }
 
+    @Override
+    public void testDeleteAll() throws Exception {
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setResponseCode(200)); // contains a file - 200
+        server.start();
+
+        baseUrl = server.url("/");
+
+        super.testDeleteAll();
+
+        server.shutdown();
+
+    }
+
+    @Override
+    public void testDelete() throws Exception {
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setResponseCode(200)); // contains a file - 200
+        server.start();
+
+        baseUrl = server.url("/");
+
+        super.testDelete();
+
+        server.shutdown();
+
+    }
+
 }

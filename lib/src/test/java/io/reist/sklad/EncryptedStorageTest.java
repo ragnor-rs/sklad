@@ -55,6 +55,8 @@ public class EncryptedStorageTest extends BaseStorageTest<EncryptedStorage> {
             }
 
         });
+        Mockito.doThrow(UnsupportedOperationException.class).when(storage).delete(Mockito.eq(TestUtils.TEST_NAME));
+        Mockito.doThrow(UnsupportedOperationException.class).when(storage).deleteAll();
         return createEncryptedStorage(storage);
     }
 

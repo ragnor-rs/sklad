@@ -19,9 +19,11 @@ import java.io.OutputStream;
 public class FileStorage implements Storage {
 
     private final Context context;
+    private final File parent;
 
-    public FileStorage(Context context) {
+    public FileStorage(@NonNull Context context, @NonNull File parent) {
         this.context = context.getApplicationContext();
+        this.parent = parent;
     }
 
     @Override
@@ -50,8 +52,16 @@ public class FileStorage implements Storage {
         return getFile(id).delete();
     }
 
-    protected File getFile(String name) throws IOException {
-        return new File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), name);
+    @Override
+    public void deleteAll() throws IOException {
+        String[] ids = parent.list();
+        for (String id : ids) {
+            delete(id);
+        }
+    }
+
+    protected File getFile(@NonNull String name) throws IOException {
+        return new File(parent, name);
     }
 
 }

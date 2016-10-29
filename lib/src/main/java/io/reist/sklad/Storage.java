@@ -22,4 +22,6 @@ public interface Storage {
 
     boolean delete(@NonNull String id) throws IOException;
 
+    void deleteAll() throws IOException;
+
 }

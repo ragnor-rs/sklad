@@ -46,6 +46,11 @@ public class MemoryStorage implements Storage {
         return dataMap.remove(id) != null;
     }
 
+    @Override
+    public void deleteAll() throws IOException {
+        dataMap.clear();
+    }
+
     static class DataHolder {
 
         final byte[] data;

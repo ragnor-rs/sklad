@@ -199,6 +199,14 @@ public class CachedStorage implements Storage {
         return remoteStorage.delete(id) && purge(id);
     }
 
+    @Override
+    public void deleteAll() throws IOException {
+        localStorage.deleteAll();
+        try {
+            remoteStorage.deleteAll();
+        } catch (UnsupportedOperationException ignored) {}
+    }
+
     @NonNull
     Storage getLocalStorage() {
         return localStorage;
