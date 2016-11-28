@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +31,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by Reist on 26.06.16.
  */
-@RunWith(RobolectricGradle3TestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(
         constants = BuildConfig.class,
         sdk = Build.VERSION_CODES.LOLLIPOP,
