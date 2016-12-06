@@ -55,37 +55,6 @@ public class ZipStorage implements Storage {
         return new SequenceInputStream(Collections.enumeration(inputStreams));
     }
 
-    @SuppressWarnings("unused")
-    public void zip(@NonNull String srcZipFile, String[] srcFiles) {
-        try {
-            byte[] buffer = new byte[4098];
-
-            ZipOutputStream zos = (ZipOutputStream) openOutputStream(srcZipFile);
-
-            for (String srcFile : srcFiles) {
-
-                File file = new File(srcFile);
-                InputStream inputStream = wrappedStorage.openInputStream(srcFile);
-                if (inputStream == null) {
-                    continue;
-                }
-
-                zos.putNextEntry(new ZipEntry(file.getName()));
-                int length;
-
-                while ((length = inputStream.read(buffer)) > 0) {
-                    zos.write(buffer, 0, length);
-                }
-
-                zos.closeEntry();
-                inputStream.close();
-            }
-            zos.close();
-
-        } catch (IOException ignored) {
-        }
-    }
-
     @Override
     public boolean delete(@NonNull String id) throws IOException {
         return wrappedStorage.delete(id);
@@ -96,6 +65,32 @@ public class ZipStorage implements Storage {
         wrappedStorage.deleteAll();
     }
 
+    @SuppressWarnings("unused")
+    public void zip(@NonNull String srcZipFile, String[] srcFiles) throws IOException {
+        byte[] buffer = new byte[4098];
+
+        ZipOutputStream zos = (ZipOutputStream) openOutputStream(srcZipFile);
+
+        for (String srcFile : srcFiles) {
+
+            File file = new File(srcFile);
+            InputStream inputStream = wrappedStorage.openInputStream(srcFile);
+            if (inputStream == null) {
+                continue;
+            }
+
+            zos.putNextEntry(new ZipEntry(file.getName()));
+            int length;
+
+            while ((length = inputStream.read(buffer)) > 0) {
+                zos.write(buffer, 0, length);
+            }
+
+            zos.closeEntry();
+            inputStream.close();
+        }
+        zos.close();
+    }
 
     /**
      * Extracts a zip file from inputStream to a directory specified by
