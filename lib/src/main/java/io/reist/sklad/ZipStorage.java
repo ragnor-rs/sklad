@@ -98,7 +98,7 @@ public class ZipStorage implements Storage {
 
 
     /**
-     * Extracts a zip file specified by the zipFilePath to a directory specified by
+     * Extracts a zip file from inputStream to a directory specified by
      * destDirectory (will be created if does not exists)
      *
      * @param inputStream   input stream of zipFile
