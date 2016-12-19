@@ -57,7 +57,7 @@ public class ZipStorage implements Storage {
     }
 
     @SuppressWarnings("unused")
-    public void zip(@NonNull ZipOutputStream outputStream, String[] srcFiles) throws IOException {
+    public static void zip(@NonNull ZipOutputStream outputStream, String[] srcFiles) throws IOException {
         byte[] buffer = new byte[4098];
 
         for (String srcFile : srcFiles) {
@@ -86,7 +86,7 @@ public class ZipStorage implements Storage {
      * @throws IOException
      */
     @SuppressWarnings("unused")
-    public void unzip(@NonNull InputStream inputStream, String destDirectory) throws IOException {
+    public static void unzip(@NonNull InputStream inputStream, String destDirectory) throws IOException {
         File destDir = new File(destDirectory);
         if (!destDir.exists()) {
             //noinspection ResultOfMethodCallIgnored
@@ -116,7 +116,7 @@ public class ZipStorage implements Storage {
      * @param filePath       path for entry file
      * @throws IOException
      */
-    private void extractFile(ZipInputStream zipInputStream, String filePath) throws IOException {
+    private static void extractFile(ZipInputStream zipInputStream, String filePath) throws IOException {
         OutputStream outputStream = new FileOutputStream(new File(filePath));
         byte[] bytesIn = new byte[4096];
         int read;
