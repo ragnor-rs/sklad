@@ -39,6 +39,7 @@ dependencies {
 
     compile 'com.android.support:support-annotations:25.0.1'
     compile 'com.squareup.okhttp3:okhttp:' + okhttpVersion
+    compile 'org.zeroturnaround:zt-zip:1.10'
 
     testCompile 'junit:junit:4.12'
 

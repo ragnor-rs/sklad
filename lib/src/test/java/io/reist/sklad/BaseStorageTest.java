@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
 
 import static io.reist.sklad.TestUtils.assertTestObject;
 import static io.reist.sklad.TestUtils.saveTestObject;
@@ -27,6 +28,10 @@ public abstract class BaseStorageTest<S extends Storage> {
     @Test
     public void testStreams() throws Exception {
         S storage = createStorage();
+        Class<S> clazz = (Class<S>) ((ParameterizedType) getClass()
+                .getGenericSuperclass()).getActualTypeArguments()[0];
+        System.out.println(clazz.getName());
+
         saveTestObject(storage);
         assertTestObject(storage);
     }

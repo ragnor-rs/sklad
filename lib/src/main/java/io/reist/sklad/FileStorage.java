@@ -1,7 +1,5 @@
 package io.reist.sklad;
 
-import android.content.Context;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -18,11 +16,9 @@ import java.io.OutputStream;
  */
 public class FileStorage implements Storage {
 
-    private final Context context;
     private final File parent;
 
-    public FileStorage(@NonNull Context context, @NonNull File parent) {
-        this.context = context.getApplicationContext();
+    public FileStorage(@NonNull File parent) {
         this.parent = parent;
     }
 
