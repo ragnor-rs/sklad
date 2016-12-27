@@ -1,12 +1,9 @@
 package io.reist.sklad;
 
-import org.apache.tools.ant.taskdefs.Zip;
 import org.junit.Assert;
-import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,19 +25,10 @@ public class TestUtils {
     private TestUtils() {}
 
     static void saveTestObject(Storage storage) throws IOException {
-//        if (storage instanceof ZipStorage) {
-//            saveTestObject((ZipStorage) storage);
-//            return;
-//        }
         OutputStream outputStream = storage.openOutputStream(TEST_NAME);
         outputStream.write(TEST_DATA);
         outputStream.flush();
         outputStream.close();
-    }
-
-    static void saveTestObject(ZipStorage storage) throws IOException {
-        File zf = storage.getFile();
-        ZipUtil.addEntry(zf, TEST_NAME, TEST_DATA);
     }
 
     static boolean saveTestObject(SkladService skladService) throws IOException {

@@ -8,10 +8,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 import java.io.IOException;
+
+import io.reist.sklad.utils.ZipUtils;
 
 /**
  * Created by 4xes on 21/12/2016.
@@ -32,8 +33,8 @@ public class ZipStorageTest extends BaseStorageTest<ZipStorage> {
     private static ZipStorage createFileStorage() throws IOException {
         Application application = RuntimeEnvironment.application;
 
-        File zipFile = new File(application.getCacheDir(), "temp.zip");
-        ZipUtil.packEntries(new File[]{}, zipFile);
+        File zipFile = new File(application.getCacheDir(), "test.zip");
+        ZipUtils.writeEmptyZip(zipFile);
 
         return new ZipStorage(zipFile);
     }
