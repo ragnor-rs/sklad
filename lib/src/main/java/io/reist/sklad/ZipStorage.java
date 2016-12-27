@@ -55,7 +55,7 @@ public class ZipStorage implements Storage {
 
     @Override
     public boolean delete(@NonNull String id) throws IOException {
-        ZipUtils.removeEntries(file, new String[]{id});
+        ZipUtils.removeEntries(file, new String[] {id});
         return true;
     }
 
