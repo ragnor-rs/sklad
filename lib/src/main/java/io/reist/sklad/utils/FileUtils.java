@@ -2,7 +2,6 @@ package io.reist.sklad.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,8 +25,8 @@ public class FileUtils {
      * @return
      * @see {@link #writeFile(File, InputStream, boolean)}
      */
-    public static boolean writeFile(File file, InputStream stream) {
-        return writeFile(file, stream, false);
+    public static void writeFile(File file, InputStream stream) throws IOException {
+        writeFile(file, stream, false);
     }
 
     /**
@@ -39,34 +38,34 @@ public class FileUtils {
      * @return return true
      * @throws RuntimeException if an error occurs while operator FileOutputStream
      */
-    public static boolean writeFile(File file, InputStream stream, boolean append) {
-        OutputStream o = null;
+    public static void writeFile(File file, InputStream stream, boolean append) throws IOException {
+        OutputStream out = null;
         try {
-            makeDirs(file);
-            o = new FileOutputStream(file, append);
+            ensureDirExists(file);
+            out = new FileOutputStream(file, append);
             byte data[] = new byte[1024];
             int length;
             while ((length = stream.read(data)) != -1) {
-                o.write(data, 0, length);
+                out.write(data, 0, length);
             }
-            o.flush();
-            return true;
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("FileNotFoundException occurred. ", e);
-        } catch (IOException e) {
-            throw new RuntimeException("IOException occurred. ", e);
+            out.flush();
         } finally {
-            IOUtils.close(o);
-            IOUtils.close(stream);
+            if (out != null) {
+                out.close();
+            }
         }
     }
 
 
-    public static boolean makeDirs(File folder) {
-        return (folder.exists() && folder.isDirectory()) ? true : folder.mkdirs();
+    public static boolean ensureDirExists(File folder) throws IOException {
+        if(folder.exists() && folder.isDirectory() || folder.mkdirs()) {
+            return true;
+        } else{
+            throw new IOException("Can't ensure directory");
+        }
     }
 
-    public static void moveFile(File srcFile, File destFile) {
+    public static void moveFile(File srcFile, File destFile) throws IOException {
         boolean rename = srcFile.renameTo(destFile);
         if (!rename) {
             copyFile(srcFile, destFile);
@@ -74,14 +73,16 @@ public class FileUtils {
         }
     }
 
-    public static boolean copyFile(File srcFile, File destFile) {
-        InputStream inputStream;
+    public static void copyFile(File srcFile, File destFile) throws IOException {
+        InputStream inputStream = null;
         try {
             inputStream = new FileInputStream(srcFile);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("FileNotFoundException occurred. ", e);
+            writeFile(destFile, inputStream);
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
-        return writeFile(destFile, inputStream);
     }
 
     /**

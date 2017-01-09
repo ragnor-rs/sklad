@@ -1,10 +1,12 @@
 package io.reist.sklad;
 
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +17,6 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import io.reist.sklad.utils.FileUtils;
-import io.reist.sklad.utils.IOUtils;
 import io.reist.sklad.utils.ZipUtils;
 
 /**
@@ -28,25 +29,45 @@ public class ZipStorage implements Storage {
 
     public ZipStorage(@NonNull File file) throws IOException {
         this.file = file;
+
+        ZipFile zipFile = null;
+
+        try {
+            zipFile = new ZipFile(file);
+        } catch (FileNotFoundException notFile) {
+            ZipUtils.writeEmptyZip(file);
+        }
+
+
+        if (zipFile == null) {
+            zipFile = new ZipFile(file);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            zipFile.close();
+        }
     }
 
     @Override
     public boolean contains(@NonNull String id) throws IOException {
         ZipFile zipFile = null;
-
         try {
             zipFile = new ZipFile(file);
             return zipFile.getEntry(id) != null;
         } finally {
-            IOUtils.closeQuietly(zipFile);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                if (zipFile != null) {
+                    zipFile.close();
+                }
+            }
         }
     }
 
     @Nullable
     @Override
     public InputStream openInputStream(@NonNull String id) throws IOException {
-        ZipFile zipFile = new ZipFile(file);
         if (contains(id)) {
+            ZipFile zipFile = new ZipFile(file);
             return zipFile.getInputStream(zipFile.getEntry(id));
         }
         return null;
@@ -100,8 +121,7 @@ public class ZipStorage implements Storage {
 
     @Override
     public boolean delete(@NonNull String id) throws IOException {
-        ZipUtils.removeEntries(file, new String[] {id});
-        return true;
+        return ZipUtils.removeEntries(file, new String[] {id});
     }
 
     @Override

@@ -34,7 +34,7 @@ public class ZipStorageTest extends BaseStorageTest<ZipStorage> {
         Application application = RuntimeEnvironment.application;
 
         File zipFile = new File(application.getCacheDir(), "test.zip");
-        ZipUtils.writeEmptyZip(zipFile);
+        zipFile.deleteOnExit();
 
         return new ZipStorage(zipFile);
     }

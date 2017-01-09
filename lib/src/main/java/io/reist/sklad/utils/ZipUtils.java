@@ -1,6 +1,8 @@
 package io.reist.sklad.utils;
 
 
+import android.os.Build;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,11 +23,20 @@ import java.util.zip.ZipOutputStream;
 public class ZipUtils {
 
     public static void writeEmptyZip(File destFile) throws IOException {
-        FileOutputStream fot = new FileOutputStream(destFile);
-        ZipOutputStream zos = new ZipOutputStream(fot);
-        zos.finish();
-        zos.close();
-        fot.close();
+        FileOutputStream fot = null;
+        ZipOutputStream zos = null;
+        try {
+            fot = new FileOutputStream(destFile);
+            zos = new ZipOutputStream(fot);
+        } finally {
+            if (zos != null) {
+                zos.finish();
+                zos.close();
+            }
+            if (fot != null) {
+                fot.close();
+            }
+        }
     }
 
     /**
@@ -34,15 +45,25 @@ public class ZipUtils {
      * @param srcFile an existing ZIP file (only read)
      * @param paths   the paths of entries to remove
      */
-    public static void removeEntries(File srcFile, String[] paths) throws IOException {
-        File tmpFile = FileUtils.tempFile(new File(srcFile.getParent()));
-        ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile)));
-        copyEntries(srcFile, out, new HashSet<>(Arrays.asList(paths)));
+    public static boolean removeEntries(File srcFile, String[] paths) throws IOException {
 
-        IOUtils.closeQuietly(out);
-        FileUtils.deleteFile(srcFile);
-        FileUtils.moveFile(tmpFile, srcFile);
-        FileUtils.deleteFile(tmpFile);
+        File tmpFile = null;
+        ZipOutputStream out = null;
+
+        boolean removed = false;
+        try {
+            tmpFile = FileUtils.tempFile(new File(srcFile.getParent()));
+            out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile)));
+            removed = copyEntries(srcFile, out, new HashSet<>(Arrays.asList(paths)));
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+            FileUtils.deleteFile(srcFile);
+            FileUtils.moveFile(tmpFile, srcFile);
+            FileUtils.deleteFile(tmpFile);
+        }
+        return removed;
     }
 
     /**
@@ -52,32 +73,45 @@ public class ZipUtils {
      * @param out         target ZIP stream.
      * @param skipEntries paths of entries not to copy
      */
-    public static void copyEntries(File srcZip, final ZipOutputStream out, Set<String> skipEntries) throws IOException {
+    public static boolean copyEntries(File srcZip, final ZipOutputStream out, Set<String> skipEntries) throws IOException {
         ZipFile zipFile = new ZipFile(srcZip);
+        boolean skipped = false;
 
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
 
             if (skipEntries.contains(entry.getName())) {
+                skipped = true;
                 continue;
             }
             ZipUtils.copyEntry(zipFile, entry, out);
         }
-        IOUtils.closeQuietly(zipFile);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            zipFile.close();
+        }
+        return skipped;
     }
 
+    @SuppressWarnings("ThrowFromFinallyBlock")
     public static void copyEntry(ZipFile zipFile, ZipEntry entryName, ZipOutputStream out) throws IOException {
-        byte[] buffer = new byte[4098];
+        byte[] buffer;
+        InputStream inputStream = null;
+        try {
+            buffer = new byte[4098];
+            inputStream = zipFile.getInputStream(entryName);
+            out.putNextEntry(entryName);
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+            out.closeEntry();
 
-        InputStream inputStream = zipFile.getInputStream(entryName);
-        out.putNextEntry(entryName);
-        int length;
-        while ((length = inputStream.read(buffer)) > 0) {
-            out.write(buffer, 0, length);
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
-        out.closeEntry();
-        IOUtils.closeQuietly(inputStream);
     }
 }
