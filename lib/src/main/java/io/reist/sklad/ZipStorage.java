@@ -30,22 +30,16 @@ public class ZipStorage implements Storage {
     public ZipStorage(@NonNull File file) throws IOException {
         this.file = file;
 
-        ZipFile zipFile = null;
+        ZipFile zipFile;
 
         try {
             zipFile = new ZipFile(file);
         } catch (FileNotFoundException notFile) {
             ZipUtils.writeEmptyZip(file);
-        }
-
-
-        if (zipFile == null) {
             zipFile = new ZipFile(file);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            zipFile.close();
-        }
+        zipFile.close();
     }
 
     @Override
@@ -55,10 +49,8 @@ public class ZipStorage implements Storage {
             zipFile = new ZipFile(file);
             return zipFile.getEntry(id) != null;
         } finally {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                if (zipFile != null) {
-                    zipFile.close();
-                }
+            if (zipFile != null) {
+                zipFile.close();
             }
         }
     }
@@ -93,13 +85,30 @@ public class ZipStorage implements Storage {
             }
 
             @Override
-            public void close() throws IOException {
-                out.closeEntry();
-                out.close();
+            public void close() throws IOException{
 
-                FileUtils.deleteFile(file);
-                FileUtils.moveFile(tmpFile, file);
+                IOException exception = null;
+
+                try {
+                    out.closeEntry();
+                    out.close();
+                } catch (IOException e) {
+                    exception = e;
+                }
+
+                if (exception == null) {
+                    FileUtils.deleteFile(file);
+                    try {
+                        FileUtils.moveFile(tmpFile, file);
+                    } catch (IOException e) {
+                        exception = e;
+                    }
+                }
                 FileUtils.deleteFile(tmpFile);
+
+                if (exception != null) {
+                  throw exception;
+                }
             }
 
             @Override

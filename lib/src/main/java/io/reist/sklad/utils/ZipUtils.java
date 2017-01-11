@@ -22,21 +22,9 @@ import java.util.zip.ZipOutputStream;
 
 public class ZipUtils {
 
-    public static void writeEmptyZip(File destFile) throws IOException {
-        FileOutputStream fot = null;
-        ZipOutputStream zos = null;
-        try {
-            fot = new FileOutputStream(destFile);
-            zos = new ZipOutputStream(fot);
-        } finally {
-            if (zos != null) {
-                zos.finish();
-                zos.close();
-            }
-            if (fot != null) {
-                fot.close();
-            }
-        }
+    public static void writeEmptyZip(File destFile) throws IOException{
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(destFile));
+        zos.close();
     }
 
     /**
@@ -51,17 +39,36 @@ public class ZipUtils {
         ZipOutputStream out = null;
 
         boolean removed = false;
+        boolean copySuccess = false;
         try {
             tmpFile = FileUtils.tempFile(new File(srcFile.getParent()));
             out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile)));
             removed = copyEntries(srcFile, out, new HashSet<>(Arrays.asList(paths)));
+            copySuccess = true;
         } finally {
-            if (out != null) {
-                out.close();
+            IOException exception = null;
+
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException e) {
+                exception = e;
             }
-            FileUtils.deleteFile(srcFile);
-            FileUtils.moveFile(tmpFile, srcFile);
+
+            if (exception == null && out != null) {
+                FileUtils.deleteFile(srcFile);
+                try {
+                    FileUtils.moveFile(tmpFile, srcFile);
+                } catch (IOException e) {
+                    exception = e;
+                }
+            }
             FileUtils.deleteFile(tmpFile);
+
+            if (copySuccess && exception != null) {
+                throw exception;
+            }
         }
         return removed;
     }
@@ -88,9 +95,7 @@ public class ZipUtils {
             ZipUtils.copyEntry(zipFile, entry, out);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            zipFile.close();
-        }
+        zipFile.close();
         return skipped;
     }
 

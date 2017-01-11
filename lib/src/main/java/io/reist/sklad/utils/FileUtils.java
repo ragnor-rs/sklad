@@ -1,7 +1,6 @@
 package io.reist.sklad.utils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +57,7 @@ public class FileUtils {
 
 
     public static boolean ensureDirExists(File folder) throws IOException {
-        if(folder.exists() && folder.isDirectory() || folder.mkdirs()) {
+        if (folder.exists() && folder.isDirectory() || folder.mkdirs()) {
             return true;
         } else{
             throw new IOException("Can't ensure directory");
@@ -68,20 +67,7 @@ public class FileUtils {
     public static void moveFile(File srcFile, File destFile) throws IOException {
         boolean rename = srcFile.renameTo(destFile);
         if (!rename) {
-            copyFile(srcFile, destFile);
-            deleteFile(srcFile);
-        }
-    }
-
-    public static void copyFile(File srcFile, File destFile) throws IOException {
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(srcFile);
-            writeFile(destFile, inputStream);
-        } finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
+            throw new IOException("Can't rename file");
         }
     }
 
@@ -115,6 +101,10 @@ public class FileUtils {
     }
 
     public static File tempFile(File directory) throws IOException {
-        return File.createTempFile(UUID.randomUUID().toString(), null, directory);
+        return File.createTempFile(tempName(), null, directory);
+    }
+
+    public static String tempName() {
+        return UUID.randomUUID().toString();
     }
 }
