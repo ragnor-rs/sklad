@@ -85,29 +85,14 @@ public class ZipStorage implements Storage {
             }
 
             @Override
-            public void close() throws IOException{
-
-                IOException exception = null;
-
+            public void close() throws IOException {
                 try {
                     out.closeEntry();
                     out.close();
-                } catch (IOException e) {
-                    exception = e;
-                }
-
-                if (exception == null) {
                     FileUtils.deleteFile(file);
-                    try {
-                        FileUtils.moveFile(tmpFile, file);
-                    } catch (IOException e) {
-                        exception = e;
-                    }
-                }
-                FileUtils.deleteFile(tmpFile);
-
-                if (exception != null) {
-                  throw exception;
+                    FileUtils.moveFile(tmpFile, file);
+                } finally {
+                    FileUtils.deleteFile(tmpFile);
                 }
             }
 

@@ -15,55 +15,6 @@ public class FileUtils {
         throw new AssertionError();
     }
 
-
-    /**
-     * write file, the bytes will be written to the begin of the file
-     *
-     * @param file
-     * @param stream
-     * @return
-     * @see {@link #writeFile(File, InputStream, boolean)}
-     */
-    public static void writeFile(File file, InputStream stream) throws IOException {
-        writeFile(file, stream, false);
-    }
-
-    /**
-     * write file
-     *
-     * @param file   the file to be opened for writing.
-     * @param stream the input stream
-     * @param append if <code>true</code>, then bytes will be written to the end of the file rather than the beginning
-     * @return return true
-     * @throws RuntimeException if an error occurs while operator FileOutputStream
-     */
-    public static void writeFile(File file, InputStream stream, boolean append) throws IOException {
-        OutputStream out = null;
-        try {
-            ensureDirExists(file);
-            out = new FileOutputStream(file, append);
-            byte data[] = new byte[1024];
-            int length;
-            while ((length = stream.read(data)) != -1) {
-                out.write(data, 0, length);
-            }
-            out.flush();
-        } finally {
-            if (out != null) {
-                out.close();
-            }
-        }
-    }
-
-
-    public static boolean ensureDirExists(File folder) throws IOException {
-        if (folder.exists() && folder.isDirectory() || folder.mkdirs()) {
-            return true;
-        } else{
-            throw new IOException("Can't ensure directory");
-        }
-    }
-
     public static void moveFile(File srcFile, File destFile) throws IOException {
         boolean rename = srcFile.renameTo(destFile);
         if (!rename) {

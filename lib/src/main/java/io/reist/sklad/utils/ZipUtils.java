@@ -39,35 +39,17 @@ public class ZipUtils {
         ZipOutputStream out = null;
 
         boolean removed = false;
-        boolean copySuccess = false;
         try {
             tmpFile = FileUtils.tempFile(new File(srcFile.getParent()));
             out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile)));
             removed = copyEntries(srcFile, out, new HashSet<>(Arrays.asList(paths)));
-            copySuccess = true;
         } finally {
-            IOException exception = null;
-
             try {
-                if (out != null) {
-                    out.close();
-                }
-            } catch (IOException e) {
-                exception = e;
-            }
-
-            if (exception == null && out != null) {
+                out.close();
                 FileUtils.deleteFile(srcFile);
-                try {
-                    FileUtils.moveFile(tmpFile, srcFile);
-                } catch (IOException e) {
-                    exception = e;
-                }
-            }
-            FileUtils.deleteFile(tmpFile);
-
-            if (copySuccess && exception != null) {
-                throw exception;
+                FileUtils.moveFile(tmpFile, srcFile);
+            } catch (IOException e) {
+                FileUtils.deleteFile(tmpFile);
             }
         }
         return removed;
