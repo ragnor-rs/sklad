@@ -1,6 +1,6 @@
 # Sklad
 [![Build Status](https://travis-ci.org/ragnor-rs/sklad.svg?branch=develop)](https://travis-ci.org/ragnor-rs/sklad)
-[![Release](https://jitpack.io/v/ragnor-rs/sklad.svg)](https://jitpack.io/#ragnor-rs/sklad/)
+[![Release](https://jitpack.io/v/ragnor-rs/sklad.svg)](https://jitpack.io/#ragnor-rs/sklad)
 
 Android file storage library with encryption and streaming support.
 
