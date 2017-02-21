@@ -158,15 +158,21 @@ public class CachedStorage implements Storage {
                 throw new IllegalStateException("Input stream is null");
             }
 
-            while (true) {
-                int numRead = inputStream.read(buffer);
-                if (numRead == -1) {
-                    break;
-                }
-                outputStream.write(buffer, 0, numRead);
-            }
+            try {
 
-            outputStream.flush();
+                while (true) {
+                    int numRead = inputStream.read(buffer);
+                    if (numRead == -1) {
+                        break;
+                    }
+                    outputStream.write(buffer, 0, numRead);
+                }
+
+                outputStream.flush();
+
+            } finally {
+                inputStream.close();
+            }
 
         } finally {
             outputStream.close();
