@@ -108,102 +108,12 @@ public class CachedStorage implements Storage {
             Log.d(TAG, "Reading " + id + " from remote storage");
 
             final InputStream remoteStream = remoteStorage.openInputStream(id);
-            final OutputStream localStream = localStorage.openOutputStream(id);
 
             if (remoteStream == null) {
                 throw new IllegalStateException("Remote stream is null");
             }
 
-            return new InputStream() {
-
-                public boolean skipped;
-
-                @Override
-                public int read() throws IOException {
-                    int r = remoteStream.read();
-                    if (!skipped) {
-                        localStream.write(r); // cache iff no skips happened
-                    }
-                    return r;
-                }
-
-                @Override
-                public int read(byte[] b) throws IOException {
-                    int r = remoteStream.read(b);
-                    if (!skipped) {
-                        localStream.write(b); // cache iff no skips happened
-                    }
-                    return r;
-                }
-
-                @Override
-                public int read(byte[] b, int off, int len) throws IOException {
-                    int r = remoteStream.read(b, off, len);
-                    if (!skipped) {
-                        localStream.write(b, off, len);
-                    }
-                    return r;
-                }
-
-                @Override
-                public void close() throws IOException {
-
-                    try {
-                        localStream.flush();
-                    } finally {
-                        localStream.close();
-                        remoteStream.close();
-                    }
-
-                    // todo allow partial caching - https://dreams.atlassian.net/browse/ZAN-674
-                    // don't leave partial files
-                    if (available() > 0 && !skipped) {
-                        removeCachedObject();
-                    }
-
-                }
-
-                private void removeCachedObject() throws IOException {
-                    if (localStorage.delete(id)) {
-                        Log.d(TAG, "Removed partial cache for " + id);
-                    } else if (localStorage.contains(id)) {
-                        throw new IOException("Cannot wipe partially cached object");
-                    } else {
-                        Log.d(TAG, "No cached objects for " + id);
-                    }
-                }
-
-                @Override
-                public long skip(long n) throws IOException {
-                    if (!skipped && n > 0) {
-                        skipped = true;
-                        Log.d(TAG, "Skipped " + n + " bytes in " + id);
-                        removeCachedObject();
-                    }
-                    return remoteStream.skip(n);
-                }
-
-                @Override
-                public int available() throws IOException {
-                    return remoteStream.available();
-                }
-
-                @Override
-                public synchronized void mark(int readlimit) {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public synchronized void reset() throws IOException {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public boolean markSupported() {
-                    return false;
-                }
-
-            };
+            return remoteStream;
 
         } else {
             return null;
