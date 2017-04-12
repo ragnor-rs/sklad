@@ -19,6 +19,7 @@ package io.reist.sklad;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,9 +34,19 @@ public class CachedStorage implements Storage {
     private final Storage remoteStorage;
     private final Storage localStorage;
 
-    public CachedStorage(@NonNull Storage remoteStorage, @NonNull Storage localStorage) {
+    private final CacheStatusHolder cacheStatusHolder;
+
+    public CachedStorage(
+            @NonNull Storage remoteStorage,
+            @NonNull Storage localStorage,
+            @NonNull CacheStatusHolder cacheStatusHolder
+    ) {
+
         this.remoteStorage = remoteStorage;
         this.localStorage = localStorage;
+
+        this.cacheStatusHolder = cacheStatusHolder;
+
     }
 
     @Override
@@ -43,17 +54,21 @@ public class CachedStorage implements Storage {
         return containsInLocalStorage(id) || containsInRemoteStorage(id);
     }
 
-    public boolean containsInRemoteStorage(@NonNull String name) throws IOException {
-        return remoteStorage.contains(name);
+    public boolean containsInRemoteStorage(@NonNull String id) throws IOException {
+        return remoteStorage.contains(id);
     }
 
-    public boolean containsInLocalStorage(@NonNull String name) throws IOException {
-        return localStorage.contains(name);
+    public boolean containsInLocalStorage(@NonNull String id) throws IOException {
+        boolean contains = localStorage.contains(id);
+        if (contains) {
+            cacheStatusHolder.put(id, true);
+        }
+        return contains;
     }
 
     @NonNull
     @Override
-    public OutputStream openOutputStream(@NonNull String id) throws IOException {
+    public OutputStream openOutputStream(@NonNull final String id) throws IOException {
 
         final OutputStream localStream = localStorage.openOutputStream(id);
         final OutputStream remoteStream = remoteStorage.openOutputStream(id);
@@ -80,8 +95,15 @@ public class CachedStorage implements Storage {
 
             @Override
             public void flush() throws IOException {
+
                 localStream.flush();
-                remoteStream.flush();
+
+                try {
+                    remoteStream.flush();
+                } finally {
+                    cacheStatusHolder.put(id, true);
+                }
+
             }
 
             @Override
@@ -104,16 +126,138 @@ public class CachedStorage implements Storage {
 
         } else if (containsInRemoteStorage(id)) {
 
-
             Log.d(TAG, "Reading " + id + " from remote storage");
 
-            final InputStream remoteStream = remoteStorage.openInputStream(id);
-
-            if (remoteStream == null) {
+            final InputStream srcStream = remoteStorage.openInputStream(id);
+            if (srcStream == null) {
                 throw new IllegalStateException("Remote stream is null");
             }
 
-            return remoteStream;
+            final OutputStream dstStream = localStorage.openOutputStream(id);
+
+            return new InputStream() {
+
+                private void closeDstStream(boolean finished) throws IOException {
+
+                    if (cacheStatusHolder.isCached(id)) {
+                        return;
+                    }
+
+                    try {
+                        dstStream.flush();
+                    } finally {
+                        dstStream.close();
+                    }
+
+                    if (finished) {
+                        cacheStatusHolder.put(id, true);
+                    } else {
+                        localStorage.delete(id);
+                    }
+
+                }
+
+                @Override
+                public int read(@NonNull byte[] b) throws IOException {
+
+                    int byteCount;
+
+                    try {
+                        byteCount = srcStream.read(b);
+                    } catch (EOFException e) {
+                        closeDstStream(true);
+                        throw e;
+                    }
+
+                    if (byteCount == -1) {
+                        closeDstStream(true);
+                    } else {
+                        dstStream.write(b, 0, byteCount);
+                    }
+
+                    return byteCount;
+
+                }
+
+                @Override
+                public int read(@NonNull byte[] b, int off, int len) throws IOException {
+
+                    int byteCount;
+
+                    try {
+                        byteCount = srcStream.read(b, off, len);
+                    } catch (EOFException e) {
+                        closeDstStream(true);
+                        throw e;
+                    }
+
+                    if (byteCount == -1) {
+                        closeDstStream(true);
+                    } else {
+                        dstStream.write(b, off, byteCount);
+                    }
+
+                    return byteCount;
+
+                }
+
+                @Override
+                public int read() throws IOException {
+
+                    int b;
+
+                    try {
+                        b = srcStream.read();
+                    } catch (EOFException e) {
+                        closeDstStream(true);
+                        throw e;
+                    }
+
+                    if (b == -1) {
+                        closeDstStream(true);
+                    } else {
+                        dstStream.write(b);
+                    }
+
+                    return b;
+
+                }
+
+                @Override
+                public void close() throws IOException {
+                    try {
+                        srcStream.close();
+                    } finally {
+                        closeDstStream(false);
+                    }
+                }
+
+                @Override
+                public synchronized void mark(int readlimit) {
+                    srcStream.mark(readlimit);
+                }
+
+                @Override
+                public int available() throws IOException {
+                    return srcStream.available();
+                }
+
+                @Override
+                public synchronized void reset() throws IOException {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public long skip(long n) throws IOException {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public boolean markSupported() {
+                    return false;
+                }
+
+            };
 
         } else {
             return null;
@@ -181,7 +325,11 @@ public class CachedStorage implements Storage {
     }
 
     public boolean purge(@NonNull String id) throws IOException {
-        return localStorage.delete(id);
+        boolean result = localStorage.delete(id);
+        if (result) {
+            cacheStatusHolder.put(id, false);
+        }
+        return result;
     }
 
 }

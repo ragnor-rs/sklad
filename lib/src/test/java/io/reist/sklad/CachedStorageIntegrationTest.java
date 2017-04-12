@@ -26,6 +26,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -70,7 +71,8 @@ public class CachedStorageIntegrationTest extends BaseStorageTest<CachedStorage>
     protected CachedStorage createStorage() throws IOException {
         return new CachedStorage(
                 NetworkStorageTest.createNetworkStorage(baseUrl),
-                EncryptedStorageTest.createEncryptedStorage(FileStorageTest.createFileStorage())
+                EncryptedStorageTest.createEncryptedStorage(FileStorageTest.createFileStorage()),
+                new MemoryCacheStatusHolder()
         );
     }
 
@@ -220,8 +222,37 @@ public class CachedStorageIntegrationTest extends BaseStorageTest<CachedStorage>
         int b = inputStream.read();
         assertNotEquals(-1, b);
         inputStream.close();
+
         InputStream localStream = storage.getLocalStorage().openInputStream(TestUtils.TEST_NAME);
         assertNull(localStream);
+
+        server.shutdown();
+
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Test
+    public void testCaching() throws Exception {
+
+        Buffer buffer = new Buffer();
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse());                     // contains data
+        server.enqueue(new MockResponse().setBody(buffer));     // respond with actual data
+        server.start();
+
+        baseUrl = server.url("/");
+
+        CachedStorage storage = createStorage();
+        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME);
+        assertNotNull(inputStream);
+        try {
+            while (inputStream.read() != -1) ;
+        } catch (EOFException ignored) {}
+        inputStream.close();
+
+        TestUtils.assertTestObject(storage.getLocalStorage());
 
         server.shutdown();
 

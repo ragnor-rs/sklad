@@ -31,7 +31,7 @@ public class CachedServiceIntegrationTest extends BaseSkladServiceTest<CachedSkl
     @Override
     @NonNull
     protected CachedSkladService createSkladService() {
-        return new CachedSkladService(new MemoryStorage(), new MemoryStorage());
+        return new CachedSkladService(new MemoryStorage(), new MemoryStorage(), new MemoryCacheStatusHolder());
     }
 
     @Test

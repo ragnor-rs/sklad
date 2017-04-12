@@ -33,13 +33,14 @@ public class CachedSkladService implements SkladService {
 
     public CachedSkladService(
             @NonNull Storage remoteStorage,
-            @NonNull Storage localStorage
+            @NonNull Storage localStorage,
+            @NonNull CacheStatusHolder cacheStatusHolder
     ) {
 
         this.remoteStorage = remoteStorage;
         this.localStorage = localStorage;
 
-        CachedStorage cachedStorage = new CachedStorage(remoteStorage, localStorage);
+        CachedStorage cachedStorage = new CachedStorage(remoteStorage, localStorage, cacheStatusHolder);
 
         remoteSkladService = new SimpleSkladService(cachedStorage);
         localSkladService = new SimpleSkladService(localStorage);
