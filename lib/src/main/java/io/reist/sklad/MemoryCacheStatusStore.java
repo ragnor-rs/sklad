@@ -7,7 +7,7 @@ import java.util.Map;
  * Created by reist on 12.04.17.
  */
 
-class MemoryCacheStatusHolder implements CacheStatusHolder {
+class MemoryCacheStatusStore implements CacheStatusStore {
 
     private final Map<String, Boolean> statusMap = new HashMap<>();
 
