@@ -59,11 +59,7 @@ public class CachedStorage implements Storage {
     }
 
     public boolean containsInLocalStorage(@NonNull String id) throws IOException {
-        boolean contains = localStorage.contains(id);
-        if (contains) {
-            cacheStatusHolder.put(id, true);
-        }
-        return contains;
+        return localStorage.contains(id);
     }
 
     @NonNull
