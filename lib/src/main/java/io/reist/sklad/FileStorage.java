@@ -72,7 +72,7 @@ public class FileStorage implements Storage {
         }
     }
 
-    protected File getFile(@NonNull String name) throws IOException {
+    public File getFile(@NonNull String name) throws IOException {
         return new File(parent, name);
     }
 
