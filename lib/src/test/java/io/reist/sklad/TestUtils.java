@@ -18,7 +18,6 @@ package io.reist.sklad;
 
 import org.junit.Assert;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,11 +52,9 @@ public class TestUtils {
         assertInputStream(storage.openInputStream(TEST_NAME), TEST_DATA, bytesToSkip);
     }
 
-    private static void assertInputStream(InputStream stream, byte[] data, long bytesToSkip) throws IOException {
+    private static void assertInputStream(InputStream inputStream, byte[] data, long bytesToSkip) throws IOException {
 
-        Assert.assertNotNull(stream);
-
-        BufferedInputStream inputStream = new BufferedInputStream(stream);
+        Assert.assertNotNull(inputStream);
 
         long bytesSkipped = bytesToSkip == 0 ? 0 : inputStream.skip(bytesToSkip);
         if (bytesToSkip > 0) {

@@ -57,51 +57,7 @@ public class CachedStorage implements Storage {
     @NonNull
     @Override
     public OutputStream openOutputStream(@NonNull final String id) throws IOException {
-
-        final OutputStream localStream = cache.openOutputStream(id);
-        final OutputStream remoteStream = source.openOutputStream(id);
-
-        return new OutputStream() {
-
-            @Override
-            public void write(int i) throws IOException {
-                localStream.write(i);
-                remoteStream.write(i);
-            }
-
-            @Override
-            public void write(byte[] b) throws IOException {
-                localStream.write(b);
-                remoteStream.write(b);
-            }
-
-            @Override
-            public void write(byte[] b, int off, int len) throws IOException {
-                localStream.write(b, off, len);
-                remoteStream.write(b, off, len);
-            }
-
-            @Override
-            public void flush() throws IOException {
-
-                localStream.flush();
-
-                try {
-                    remoteStream.flush();
-                } finally {
-                    cacheStatusStore.put(id, true);
-                }
-
-            }
-
-            @Override
-            public void close() throws IOException {
-                localStream.close();
-                remoteStream.close();
-            }
-
-        };
-
+        return source.openOutputStream(id);
     }
 
     @Override
