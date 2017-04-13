@@ -222,8 +222,14 @@ public class CachedStorage implements Storage {
                 }
 
                 @Override
-                public synchronized void mark(int readlimit) {
-                    srcStream.mark(readlimit);
+                public long skip(long n) throws IOException {
+                    byte[] buffer = new byte[1024];
+                    int byteCount;
+                    long totalByteCount = 0;
+                    while (n > totalByteCount && (byteCount = read(buffer, 0, (int) Math.min(buffer.length, n - totalByteCount))) > 0) {
+                        totalByteCount += byteCount;
+                    }
+                    return totalByteCount;
                 }
 
                 @Override
@@ -237,7 +243,7 @@ public class CachedStorage implements Storage {
                 }
 
                 @Override
-                public long skip(long n) throws IOException {
+                public synchronized void mark(int readlimit) {
                     throw new UnsupportedOperationException();
                 }
 

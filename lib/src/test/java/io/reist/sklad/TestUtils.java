@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Reist on 28.06.16.
@@ -34,7 +34,7 @@ public class TestUtils {
     static final byte[] TEST_DATA = new byte[] {17, 25, 33};
 
     static final String CIPHER_TEST_KEY = "1d21ef261a";
-    static final byte[] CIPHER_TEST_DATA = new byte[]{-127, -100, 97, 108, -120, -37, -48, 2};
+    static final byte[] CIPHER_TEST_DATA = new byte[] {-127, -100, 97, 108, -120, -37, -48, 2};
 
     private TestUtils() {}
 
@@ -46,16 +46,36 @@ public class TestUtils {
     }
 
     static void assertTestObject(Storage storage) throws IOException {
-        assertInputStream(storage.openInputStream(TEST_NAME), TEST_DATA);
+        assertTestObject(storage, 0);
     }
 
-    private static void assertInputStream(InputStream stream, byte[] data) throws IOException {
+    static void assertTestObject(Storage storage, long bytesToSkip) throws IOException {
+        assertInputStream(storage.openInputStream(TEST_NAME), TEST_DATA, bytesToSkip);
+    }
+
+    private static void assertInputStream(InputStream stream, byte[] data, long bytesToSkip) throws IOException {
+
         Assert.assertNotNull(stream);
+
         BufferedInputStream inputStream = new BufferedInputStream(stream);
-        byte[] buffer = new byte[data.length];
-        assertEquals(data.length, inputStream.read(buffer));
+
+        long bytesSkipped = bytesToSkip == 0 ? 0 : inputStream.skip(bytesToSkip);
+        if (bytesToSkip > 0) {
+            assertTrue(bytesSkipped > 0);
+        }
+
+        byte[] buffer = new byte[(int) (data.length - bytesToSkip)];
+        int bytesRead = inputStream.read(buffer);
         inputStream.close();
-        Assert.assertArrayEquals(data, buffer);
+
+        byte[] expected = new byte[bytesRead];
+        System.arraycopy(data, (int) bytesSkipped, expected, 0, bytesRead);
+
+        byte[] actual = new byte[bytesRead];
+        System.arraycopy(buffer, 0, actual, 0, bytesRead);
+
+        Assert.assertArrayEquals(expected, actual);
+
     }
 
 }

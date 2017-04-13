@@ -140,4 +140,22 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
 
     }
 
+    @Override
+    public void testSkip() throws Exception {
+
+        Buffer buffer = new Buffer();
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setBody(buffer));
+        server.start();
+
+        baseUrl = server.url("/");
+
+        super.testSkip();
+
+        server.shutdown();
+
+    }
+
 }

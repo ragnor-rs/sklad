@@ -1,6 +1,5 @@
 package io.reist.sklad;
 
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -28,6 +27,7 @@ public class ZipStorage implements Storage {
     private File file;
 
     public ZipStorage(@NonNull File file) throws IOException {
+
         this.file = file;
 
         ZipFile zipFile;
@@ -40,29 +40,78 @@ public class ZipStorage implements Storage {
         }
 
         zipFile.close();
+
     }
 
     @Override
     public boolean contains(@NonNull String id) throws IOException {
-        ZipFile zipFile = null;
-        try {
-            zipFile = new ZipFile(file);
-            return zipFile.getEntry(id) != null;
-        } finally {
-            if (zipFile != null) {
-                zipFile.close();
-            }
-        }
+        ZipFile zipFile = new ZipFile(file);
+        boolean b = zipFile.getEntry(id) != null;
+        zipFile.close();
+        return b;
     }
 
     @Nullable
     @Override
     public InputStream openInputStream(@NonNull String id) throws IOException {
         if (contains(id)) {
-            ZipFile zipFile = new ZipFile(file);
-            return zipFile.getInputStream(zipFile.getEntry(id));
+            final ZipFile zipFile = new ZipFile(file);
+            final InputStream inputStream = zipFile.getInputStream(zipFile.getEntry(id));
+            return new InputStream() {
+
+                @Override
+                public int read(@NonNull byte[] b) throws IOException {
+                    return inputStream.read(b);
+                }
+
+                @Override
+                public int read(@NonNull byte[] b, int off, int len) throws IOException {
+                    return inputStream.read(b, off, len);
+                }
+
+                @Override
+                public long skip(long n) throws IOException {
+                    return inputStream.skip(n);
+                }
+
+                @Override
+                public int available() throws IOException {
+                    return inputStream.available();
+                }
+
+                @Override
+                public void close() throws IOException {
+                    try {
+                        inputStream.close();
+                    } finally {
+                        zipFile.close();
+                    }
+                }
+
+                @Override
+                public synchronized void mark(int readlimit) {
+                    inputStream.mark(readlimit);
+                }
+
+                @Override
+                public synchronized void reset() throws IOException {
+                    inputStream.reset();
+                }
+
+                @Override
+                public boolean markSupported() {
+                    return inputStream.markSupported();
+                }
+
+                @Override
+                public int read() throws IOException {
+                    return inputStream.read();
+                }
+
+            };
+        } else {
+            return null;
         }
-        return null;
     }
 
     @NonNull
@@ -79,6 +128,7 @@ public class ZipStorage implements Storage {
         out.putNextEntry(new ZipEntry(id));
 
         return new OutputStream() {
+
             @Override
             public void write(int b) throws IOException {
                 out.write(b);
@@ -110,7 +160,9 @@ public class ZipStorage implements Storage {
             public void write(@NonNull byte[] b, int off, int len) throws IOException {
                 out.write(b, off, len);
             }
+
         };
+
     }
 
     @Override
@@ -127,4 +179,5 @@ public class ZipStorage implements Storage {
     public File getFile() {
         return file;
     }
+
 }
