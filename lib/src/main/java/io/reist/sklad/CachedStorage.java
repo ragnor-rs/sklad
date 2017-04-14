@@ -114,7 +114,7 @@ public class CachedStorage implements Storage {
                         throw e;
                     }
 
-                    if (byteCount == -1) {
+                    if (byteCount == -1 || srcStream.available() == 0) {
                         closeDstStream(true);
                     } else {
                         dstStream.write(b, 0, byteCount);
@@ -136,7 +136,7 @@ public class CachedStorage implements Storage {
                         throw e;
                     }
 
-                    if (byteCount == -1) {
+                    if (byteCount == -1 || srcStream.available() == 0) {
                         closeDstStream(true);
                     } else {
                         dstStream.write(b, off, byteCount);
@@ -158,7 +158,7 @@ public class CachedStorage implements Storage {
                         throw e;
                     }
 
-                    if (b == -1) {
+                    if (b == -1 || srcStream.available() == 0) {
                         closeDstStream(true);
                     } else {
                         dstStream.write(b);

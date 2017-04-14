@@ -183,7 +183,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Test
-    public void testCaching() throws Exception {
+    public void testCachingViaEof() throws Exception {
 
         Buffer buffer = new Buffer();
         buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
@@ -199,6 +199,41 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
         assertNotNull(inputStream);
         try {
             while (inputStream.read() != -1);
+        } catch (EOFException ignored) {}
+        inputStream.close();
+
+        CacheStatusStore cacheStatusStore = storage.getCacheStatusStore();
+        assertTrue(cacheStatusStore.isCached(TestUtils.TEST_NAME));
+
+        TestUtils.assertTestObject(storage.getCache());
+
+        server.shutdown();
+
+    }
+
+    @SuppressWarnings({"StatementWithEmptyBody", "ResultOfMethodCallIgnored"})
+    @Test
+    public void testCachingViaAvailable() throws Exception {
+
+        Buffer buffer = new Buffer();
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setBody(buffer));     // respond with actual data
+        server.start();
+
+        baseUrl = server.url("/");
+
+        CachedStorage storage = createStorage();
+        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME);
+        assertNotNull(inputStream);
+        try {
+            int available = inputStream.available();
+            int i = 0;
+            while (i < available) {
+                inputStream.read();
+                i ++;
+            }
         } catch (EOFException ignored) {}
         inputStream.close();
 
