@@ -19,7 +19,6 @@ package io.reist.sklad;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -82,40 +81,15 @@ public class CachedStorage implements Storage {
 
             return new InputStream() {
 
-                private void closeDstStream(boolean finished) throws IOException {
-
-                    if (cacheStatusStore.isCached(id)) {
-                        return;
-                    }
-
-                    try {
-                        dstStream.flush();
-                    } finally {
-                        dstStream.close();
-                    }
-
-                    if (finished) {
-                        cacheStatusStore.put(id, true);
-                    } else {
-                        cache.delete(id);
-                    }
-
-                }
+                private boolean readFully = false;
 
                 @Override
                 public int read(@NonNull byte[] b) throws IOException {
 
-                    int byteCount;
-
-                    try {
-                        byteCount = srcStream.read(b);
-                    } catch (EOFException e) {
-                        closeDstStream(true);
-                        throw e;
-                    }
+                    int byteCount = srcStream.read(b);
 
                     if (byteCount == -1 || srcStream.available() == 0) {
-                        closeDstStream(true);
+                        readFully = true;
                     } else {
                         dstStream.write(b, 0, byteCount);
                     }
@@ -127,17 +101,10 @@ public class CachedStorage implements Storage {
                 @Override
                 public int read(@NonNull byte[] b, int off, int len) throws IOException {
 
-                    int byteCount;
-
-                    try {
-                        byteCount = srcStream.read(b, off, len);
-                    } catch (EOFException e) {
-                        closeDstStream(true);
-                        throw e;
-                    }
+                    int byteCount = srcStream.read(b, off, len);
 
                     if (byteCount == -1 || srcStream.available() == 0) {
-                        closeDstStream(true);
+                        readFully = true;
                     } else {
                         dstStream.write(b, off, byteCount);
                     }
@@ -149,17 +116,10 @@ public class CachedStorage implements Storage {
                 @Override
                 public int read() throws IOException {
 
-                    int b;
-
-                    try {
-                        b = srcStream.read();
-                    } catch (EOFException e) {
-                        closeDstStream(true);
-                        throw e;
-                    }
+                    int b = srcStream.read();
 
                     if (b == -1 || srcStream.available() == 0) {
-                        closeDstStream(true);
+                        readFully = true;
                     } else {
                         dstStream.write(b);
                     }
@@ -171,9 +131,23 @@ public class CachedStorage implements Storage {
                 @Override
                 public void close() throws IOException {
                     try {
+
                         srcStream.close();
+
                     } finally {
-                        closeDstStream(false);
+
+                        try {
+                            dstStream.flush();
+                        } finally {
+                            dstStream.close();
+                        }
+
+                        if (readFully) {
+                            cacheStatusStore.put(id, true);
+                        } else {
+                            cache.delete(id);
+                        }
+
                     }
                 }
 
