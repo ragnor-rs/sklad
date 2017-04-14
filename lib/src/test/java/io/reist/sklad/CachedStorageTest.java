@@ -174,6 +174,9 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
         InputStream localStream = storage.getCache().openInputStream(TestUtils.TEST_NAME);
         assertNull(localStream);
 
+        CacheStatusStore cacheStatusStore = storage.getCacheStatusStore();
+        assertFalse(cacheStatusStore.isCached(TestUtils.TEST_NAME));
+
         server.shutdown();
 
     }
@@ -198,6 +201,9 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
             while (inputStream.read() != -1);
         } catch (EOFException ignored) {}
         inputStream.close();
+
+        CacheStatusStore cacheStatusStore = storage.getCacheStatusStore();
+        assertTrue(cacheStatusStore.isCached(TestUtils.TEST_NAME));
 
         TestUtils.assertTestObject(storage.getCache());
 

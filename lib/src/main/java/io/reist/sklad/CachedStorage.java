@@ -287,4 +287,8 @@ public class CachedStorage implements Storage {
         return result;
     }
 
+    CacheStatusStore getCacheStatusStore() {
+        return cacheStatusStore;
+    }
+
 }
