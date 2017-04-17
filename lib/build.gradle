@@ -49,6 +49,8 @@ dependencies {
 
     testCompile 'com.squareup.okhttp3:mockwebserver:' + okhttpVersion
 
+    testCompile 'commons-io:commons-io:2.5'
+
 }
 
 // build a jar with source files

@@ -29,17 +29,28 @@ import static org.junit.Assert.assertTrue;
  */
 public class TestUtils {
 
-    static final String TEST_NAME = "z12";
-    static final byte[] TEST_DATA = new byte[] {17, 25, 33};
+    static final String TEST_NAME_1 = "z12";
+    static final byte[] TEST_DATA_1 = new byte[] {17, 25, 33};
+    static final String TEST_DATA_1_CIPHER_KEY = "1d21ef261a";
+    static final byte[] TEST_DATA_1_CIPHER = new byte[] {-127, -100, 97, 108, -120, -37, -48, 2};
 
-    static final String CIPHER_TEST_KEY = "1d21ef261a";
-    static final byte[] CIPHER_TEST_DATA = new byte[] {-127, -100, 97, 108, -120, -37, -48, 2};
+    static final String TEST_NAME_2 = "123";
+    static final String TEST_NAME_2_INVALID = TEST_NAME_2 + "q";
+
+    static final byte[] TEST_DATA_2 = new byte[] {1, 2, 3};
+    static final String TEST_NAME_3 = "qwe";
+    static final String TEST_NAME_3_INVALID = TEST_NAME_3 + "q";
+    static final byte[] TEST_DATA_3 = new byte[] {7, 5, 3};
 
     private TestUtils() {}
 
     static void saveTestObject(Storage storage) throws IOException {
-        OutputStream outputStream = storage.openOutputStream(TEST_NAME);
-        outputStream.write(TEST_DATA);
+        saveTestObject(storage, TEST_NAME_1, TEST_DATA_1);
+    }
+
+    static void saveTestObject(Storage storage, String id, byte[] data) throws IOException {
+        OutputStream outputStream = storage.openOutputStream(id);
+        outputStream.write(data);
         outputStream.flush();
         outputStream.close();
     }
@@ -49,7 +60,7 @@ public class TestUtils {
     }
 
     static void assertTestObject(Storage storage, long bytesToSkip) throws IOException {
-        assertInputStream(storage.openInputStream(TEST_NAME), TEST_DATA, bytesToSkip);
+        assertInputStream(storage.openInputStream(TEST_NAME_1), TEST_DATA_1, bytesToSkip);
     }
 
     private static void assertInputStream(InputStream inputStream, byte[] data, long bytesToSkip) throws IOException {

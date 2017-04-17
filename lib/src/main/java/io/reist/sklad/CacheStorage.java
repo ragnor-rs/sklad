@@ -26,56 +26,49 @@ import java.io.OutputStream;
 /**
  * Created by Reist on 25.06.16.
  */
-public class CachedStorage implements Storage {
+public class CacheStorage implements Storage {
 
-    private static final String TAG = CachedStorage.class.getSimpleName();
+    private static final String TAG = CacheStorage.class.getSimpleName();
 
-    private final Storage source;
-    private final Storage cache;
+    private final Storage remote;
+    private final Storage local;
 
-    private final CacheStatusStore cacheStatusStore;
-
-    public CachedStorage(
-            @NonNull Storage source,
-            @NonNull Storage cache,
-            @NonNull CacheStatusStore cacheStatusStore
+    public CacheStorage(
+            @NonNull Storage remote,
+            @NonNull Storage local
     ) {
-
-        this.source = source;
-        this.cache = cache;
-
-        this.cacheStatusStore = cacheStatusStore;
-
+        this.remote = remote;
+        this.local = local;
     }
 
     @Override
     public boolean contains(@NonNull String id) throws IOException {
-        return cache.contains(id) || source.contains(id);
+        return local.contains(id) || remote.contains(id);
     }
 
     @NonNull
     @Override
     public OutputStream openOutputStream(@NonNull final String id) throws IOException {
-        return source.openOutputStream(id);
+        return remote.openOutputStream(id);
     }
 
     @Override
     public InputStream openInputStream(@NonNull final String id) throws IOException {
-        if (cacheStatusStore.isCached(id)) {
+        if (local.contains(id)) {
 
-            Log.d(TAG, "Reading " + id + " from local cache");
+            Log.d(TAG, "Reading " + id + " from local local");
 
-            return cache.openInputStream(id);
+            return local.openInputStream(id);
 
         } else {
 
-            final InputStream srcStream = source.openInputStream(id);
+            final InputStream srcStream = remote.openInputStream(id);
 
             if (srcStream == null) {
                 return null;
             }
 
-            final OutputStream dstStream = cache.openOutputStream(id);
+            final OutputStream dstStream = local.openOutputStream(id);
 
             Log.d(TAG, "Reading " + id + " from remote storage");
 
@@ -142,10 +135,8 @@ public class CachedStorage implements Storage {
                             dstStream.close();
                         }
 
-                        if (readFully) {
-                            cacheStatusStore.put(id, true);
-                        } else {
-                            cache.delete(id);
+                        if (!readFully) {
+                            local.delete(id);
                         }
 
                     }
@@ -189,37 +180,37 @@ public class CachedStorage implements Storage {
 
     @Override
     public boolean delete(@NonNull String id) throws IOException {
-        return source.delete(id) && purge(id);
+        return remote.delete(id) && purge(id);
     }
 
     @Override
     public void deleteAll() throws IOException {
-        cache.deleteAll();
+        local.deleteAll();
         try {
-            source.deleteAll();
+            remote.deleteAll();
         } catch (UnsupportedOperationException ignored) {}
     }
 
     @NonNull
-    Storage getCache() {
-        return cache;
+    Storage getLocal() {
+        return local;
     }
 
     @NonNull
-    Storage getSource() {
-        return source;
+    Storage getRemote() {
+        return remote;
     }
 
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
     public void cache(String id) throws IOException {
 
-        if (cacheStatusStore.isCached(id)) {
+        if (local.contains(id)) {
             return;
         }
 
         byte[] buffer = new byte[1024];
 
-        InputStream inputStream = source.openInputStream(id);
+        InputStream inputStream = remote.openInputStream(id);
 
         if (inputStream == null) {
             throw new IllegalStateException("Input stream is null");
@@ -227,7 +218,7 @@ public class CachedStorage implements Storage {
 
         try {
 
-            OutputStream outputStream = cache.openOutputStream(id);
+            OutputStream outputStream = local.openOutputStream(id);
 
             try {
 
@@ -245,8 +236,6 @@ public class CachedStorage implements Storage {
                 outputStream.close();
             }
 
-            cacheStatusStore.put(id, true);
-
         } finally {
             inputStream.close();
         }
@@ -254,15 +243,7 @@ public class CachedStorage implements Storage {
     }
 
     public boolean purge(@NonNull String id) throws IOException {
-        boolean result = cache.delete(id);
-        if (result) {
-            cacheStatusStore.put(id, false);
-        }
-        return result;
-    }
-
-    CacheStatusStore getCacheStatusStore() {
-        return cacheStatusStore;
+        return local.delete(id);
     }
 
 }

@@ -45,7 +45,7 @@ public class EncryptedStorageTest extends BaseStorageTest<EncryptedStorage> {
     @Override
     protected EncryptedStorage createStorage() throws IOException {
         Storage storage = Mockito.mock(Storage.class);
-        Mockito.when(storage.openOutputStream(TestUtils.TEST_NAME)).then(new Answer<OutputStream>() {
+        Mockito.when(storage.openOutputStream(TestUtils.TEST_NAME_1)).then(new Answer<OutputStream>() {
 
             @Override
             public OutputStream answer(InvocationOnMock invocation) throws Throwable {
@@ -55,7 +55,7 @@ public class EncryptedStorageTest extends BaseStorageTest<EncryptedStorage> {
             }
 
         });
-        Mockito.when(storage.contains(TestUtils.TEST_NAME)).then(new Answer<Boolean>() {
+        Mockito.when(storage.contains(TestUtils.TEST_NAME_1)).then(new Answer<Boolean>() {
 
             @Override
             public Boolean answer(InvocationOnMock invocation) throws Throwable {
@@ -63,22 +63,22 @@ public class EncryptedStorageTest extends BaseStorageTest<EncryptedStorage> {
             }
 
         });
-        Mockito.when(storage.openInputStream(TestUtils.TEST_NAME)).then(new Answer<InputStream>() {
+        Mockito.when(storage.openInputStream(TestUtils.TEST_NAME_1)).then(new Answer<InputStream>() {
 
             @Override
             public InputStream answer(InvocationOnMock invocation) throws Throwable {
-                return new ByteArrayInputStream(TestUtils.CIPHER_TEST_DATA);
+                return new ByteArrayInputStream(TestUtils.TEST_DATA_1_CIPHER);
             }
 
         });
-        Mockito.doThrow(UnsupportedOperationException.class).when(storage).delete(Mockito.eq(TestUtils.TEST_NAME));
+        Mockito.doThrow(UnsupportedOperationException.class).when(storage).delete(Mockito.eq(TestUtils.TEST_NAME_1));
         Mockito.doThrow(UnsupportedOperationException.class).when(storage).deleteAll();
         return createEncryptedStorage(storage);
     }
 
     @NonNull
     static EncryptedStorage createEncryptedStorage(Storage storage) {
-        return new EncryptedStorage(storage, TestUtils.CIPHER_TEST_KEY);
+        return new EncryptedStorage(storage, TestUtils.TEST_DATA_1_CIPHER_KEY);
     }
 
 }

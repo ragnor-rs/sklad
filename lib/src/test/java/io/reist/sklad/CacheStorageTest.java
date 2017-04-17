@@ -23,10 +23,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,7 +38,7 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okio.Buffer;
 
-import static io.reist.sklad.TestUtils.TEST_NAME;
+import static io.reist.sklad.TestUtils.TEST_NAME_1;
 import static io.reist.sklad.TestUtils.assertTestObject;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -53,26 +55,22 @@ import static org.junit.Assert.assertTrue;
         sdk = Build.VERSION_CODES.LOLLIPOP,
         shadows = ShadowNetworkSecurityPolicy.class
 )
-public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
+public class CacheStorageTest extends BaseStorageTest<CacheStorage> {
 
-    private static final String LOCAL_TEST_NAME = "123";
-    private static final byte[] LOCAL_TEST_DATA = new byte[] {1, 2, 3};
-    private static final String LOCAL_INVALID_TEST_NAME = LOCAL_TEST_NAME + "q";
-
-    private static final String REMOTE_TEST_NAME = "qwe";
-    private static final byte[] REMOTE_TEST_DATA = new byte[] {7, 5, 3};
-    private static final String REMOTE_INVALID_TEST_NAME = REMOTE_TEST_NAME + "q";
-
-    private HttpUrl baseUrl;
+    protected HttpUrl baseUrl;
 
     @Override
     @NonNull
-    protected CachedStorage createStorage() throws IOException {
-        return new CachedStorage(
+    protected CacheStorage createStorage() throws IOException {
+        return new CacheStorage(
                 NetworkStorageTest.createNetworkStorage(baseUrl),
-                EncryptedStorageTest.createEncryptedStorage(FileStorageTest.createFileStorage()),
-                new MemoryCacheStatusStore()
+                createEncryptedStorage(RuntimeEnvironment.application.getCacheDir())
         );
+    }
+
+    @NonNull
+    static EncryptedStorage createEncryptedStorage(File fileDir) {
+        return EncryptedStorageTest.createEncryptedStorage(new FileStorage(fileDir));
     }
 
     @Test
@@ -80,34 +78,34 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     public void testContains() throws Exception {
 
         MockWebServer server = new MockWebServer();
-        server.enqueue(new MockResponse().setResponseCode(404)); // remote doesn't contain TEST_NAME (before save)
-        server.enqueue(new MockResponse()); // remote contains TEST_NAME (after save)
-        server.enqueue(new MockResponse().setResponseCode(404)); // remote doesn't contain LOCAL_INVALID_TEST_NAME
-        server.enqueue(new MockResponse()); // remote contains REMOTE_TEST_NAME
-        server.enqueue(new MockResponse().setResponseCode(404)); // remote doesn't contain REMOTE_INVALID_TEST_NAME
+        server.enqueue(new MockResponse().setResponseCode(404)); // remote doesn't contain TEST_NAME_1 (before save)
+        server.enqueue(new MockResponse()); // remote contains TEST_NAME_1 (after save)
+        server.enqueue(new MockResponse().setResponseCode(404)); // remote doesn't contain TEST_NAME_2_INVALID
+        server.enqueue(new MockResponse()); // remote contains TEST_NAME_3
+        server.enqueue(new MockResponse().setResponseCode(404)); // remote doesn't contain TEST_NAME_3_INVALID
         server.start();
 
         baseUrl = server.url("/");
 
         super.testContains();
 
-        CachedStorage storage = createStorage();
+        CacheStorage storage = createStorage();
 
-        OutputStream localStream = storage.getCache().openOutputStream(LOCAL_TEST_NAME);
-        localStream.write(LOCAL_TEST_DATA);
+        OutputStream localStream = storage.getLocal().openOutputStream(TestUtils.TEST_NAME_2);
+        localStream.write(TestUtils.TEST_DATA_2);
         localStream.flush();
         localStream.close();
 
-        assertTrue(storage.contains(LOCAL_TEST_NAME));
-        assertFalse(storage.contains(LOCAL_INVALID_TEST_NAME));
+        assertTrue(storage.contains(TestUtils.TEST_NAME_2));
+        assertFalse(storage.contains(TestUtils.TEST_NAME_2_INVALID));
 
-        OutputStream remoteStream = storage.getSource().openOutputStream(REMOTE_TEST_NAME);
-        remoteStream.write(REMOTE_TEST_DATA);
+        OutputStream remoteStream = storage.getRemote().openOutputStream(TestUtils.TEST_NAME_3);
+        remoteStream.write(TestUtils.TEST_DATA_3);
         remoteStream.flush();
         remoteStream.close();
 
-        assertTrue(storage.contains(REMOTE_TEST_NAME));
-        assertFalse(storage.contains(REMOTE_INVALID_TEST_NAME));
+        assertTrue(storage.contains(TestUtils.TEST_NAME_3));
+        assertFalse(storage.contains(TestUtils.TEST_NAME_3_INVALID));
 
         server.shutdown();
 
@@ -118,7 +116,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     public void testStreams() throws Exception {
 
         Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(buffer));
@@ -136,7 +134,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     public void testDownload() throws Exception {
 
         Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(buffer));
@@ -144,9 +142,9 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
         baseUrl = server.url("/");
 
-        CachedStorage storage = createStorage();
-        storage.cache(TEST_NAME);
-        assertTestObject(storage.getCache());
+        CacheStorage storage = createStorage();
+        storage.cache(TEST_NAME_1);
+        assertTestObject(storage.getLocal());
 
         server.shutdown();
 
@@ -156,7 +154,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     public void testPartialCaching() throws Exception {
 
         Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(buffer));     // respond with actual data
@@ -164,18 +162,15 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
         baseUrl = server.url("/");
 
-        CachedStorage storage = createStorage();
-        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME);
+        CacheStorage storage = createStorage();
+        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME_1);
         assertNotNull(inputStream);
         int b = inputStream.read();
         assertNotEquals(-1, b);
         inputStream.close();
 
-        InputStream localStream = storage.getCache().openInputStream(TestUtils.TEST_NAME);
+        InputStream localStream = storage.getLocal().openInputStream(TestUtils.TEST_NAME_1);
         assertNull(localStream);
-
-        CacheStatusStore cacheStatusStore = storage.getCacheStatusStore();
-        assertFalse(cacheStatusStore.isCached(TestUtils.TEST_NAME));
 
         server.shutdown();
 
@@ -186,7 +181,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     public void testCachingViaEof() throws Exception {
 
         Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(buffer));     // respond with actual data
@@ -194,18 +189,15 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
         baseUrl = server.url("/");
 
-        CachedStorage storage = createStorage();
-        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME);
+        CacheStorage storage = createStorage();
+        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME_1);
         assertNotNull(inputStream);
         try {
             while (inputStream.read() != -1);
         } catch (EOFException ignored) {}
         inputStream.close();
 
-        CacheStatusStore cacheStatusStore = storage.getCacheStatusStore();
-        assertTrue(cacheStatusStore.isCached(TestUtils.TEST_NAME));
-
-        TestUtils.assertTestObject(storage.getCache());
+        TestUtils.assertTestObject(storage.getLocal());
 
         server.shutdown();
 
@@ -216,7 +208,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     public void testCachingViaAvailable() throws Exception {
 
         Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(buffer));     // respond with actual data
@@ -224,8 +216,8 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
         baseUrl = server.url("/");
 
-        CachedStorage storage = createStorage();
-        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME);
+        CacheStorage storage = createStorage();
+        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME_1);
         assertNotNull(inputStream);
         try {
             int available = inputStream.available();
@@ -237,10 +229,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
         } catch (EOFException ignored) {}
         inputStream.close();
 
-        CacheStatusStore cacheStatusStore = storage.getCacheStatusStore();
-        assertTrue(cacheStatusStore.isCached(TestUtils.TEST_NAME));
-
-        TestUtils.assertTestObject(storage.getCache());
+        TestUtils.assertTestObject(storage.getLocal());
 
         server.shutdown();
 
@@ -286,7 +275,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     public void testSkip() throws Exception {
 
         Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(buffer));

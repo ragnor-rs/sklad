@@ -1,10 +1,7 @@
 package io.reist.sklad.utils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.UUID;
 
 
@@ -58,4 +55,16 @@ public class FileUtils {
     public static String tempName() {
         return UUID.randomUUID().toString();
     }
+
+    public static long getFolderSize(File directory) {
+        long length = 0;
+        for (File file : directory.listFiles()) {
+            if (file.isFile())
+                length += file.length();
+            else
+                length += getFolderSize(file);
+        }
+        return length;
+    }
+
 }

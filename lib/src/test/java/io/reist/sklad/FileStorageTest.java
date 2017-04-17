@@ -40,11 +40,6 @@ public class FileStorageTest extends BaseStorageTest<FileStorage> {
     @NonNull
     @Override
     protected FileStorage createStorage() throws IOException {
-        return createFileStorage();
-    }
-
-    @NonNull
-    static FileStorage createFileStorage() {
         Application application = RuntimeEnvironment.application;
         return new FileStorage(application.getCacheDir());
     }

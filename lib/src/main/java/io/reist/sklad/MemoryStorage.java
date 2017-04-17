@@ -25,10 +25,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class MemoryStorage implements Storage {
+public class MemoryStorage implements JournalingStorage {
 
     private final Map<String, DataHolder> dataMap = new HashMap<>();
+
+    private static final AtomicLong TIME = new AtomicLong(1);
 
     @Override
     public boolean contains(@NonNull String id) {
@@ -43,7 +46,7 @@ public class MemoryStorage implements Storage {
             @Override
             public void flush() throws IOException {
                 super.flush();
-                dataMap.put(id, new DataHolder(toByteArray(), size()));
+                dataMap.put(id, new DataHolder(toByteArray(), size(), id));
             }
 
         };
@@ -67,14 +70,39 @@ public class MemoryStorage implements Storage {
         dataMap.clear();
     }
 
+    @Override
+    public long getUsedSpace() {
+        int totalSize = 0;
+        for (Map.Entry<String, DataHolder> entry : dataMap.entrySet()) {
+            totalSize += entry.getValue().length;
+        }
+        return totalSize;
+    }
+
+    @Override
+    public String getOldestId() {
+        DataHolder oldest = null;
+        for (Map.Entry<String, DataHolder> entry : dataMap.entrySet()) {
+            DataHolder value = entry.getValue();
+            if (oldest == null || value.modified < oldest.modified) {
+                oldest = entry.getValue();
+            }
+        }
+        return oldest == null ? null : oldest.id;
+    }
+
     static class DataHolder {
 
         final byte[] data;
         final int length;
+        final long modified;
+        final String id;
 
-        public DataHolder(byte[] data, int length) {
+        public DataHolder(byte[] data, int length, String id) {
             this.data = data;
             this.length = length;
+            this.id = id;
+            this.modified = TIME.incrementAndGet();
         }
 
     }

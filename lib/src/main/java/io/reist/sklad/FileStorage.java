@@ -27,10 +27,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static io.reist.sklad.utils.FileUtils.getFolderSize;
+
 /**
  * Created by Reist on 28.06.16.
  */
-public class FileStorage implements Storage {
+public class FileStorage implements JournalingStorage {
 
     private final File parent;
 
@@ -40,20 +42,20 @@ public class FileStorage implements Storage {
 
     @Override
     public boolean contains(@NonNull String id) throws IOException {
-        return getFile(id).exists();
+        return getFileById(id).exists();
     }
 
     @NonNull
     @Override
     public OutputStream openOutputStream(@NonNull String id) throws IOException {
-        return new FileOutputStream(getFile(id));
+        return new FileOutputStream(getFileById(id));
     }
 
     @Nullable
     @Override
     public InputStream openInputStream(@NonNull String id) throws IOException {
         try {
-            return new FileInputStream(getFile(id));
+            return new FileInputStream(getFileById(id));
         } catch (FileNotFoundException e) {
             return null;
         }
@@ -61,7 +63,7 @@ public class FileStorage implements Storage {
 
     @Override
     public boolean delete(@NonNull String id) throws IOException {
-        return getFile(id).delete();
+        return getFileById(id).delete();
     }
 
     @Override
@@ -72,8 +74,34 @@ public class FileStorage implements Storage {
         }
     }
 
-    public File getFile(@NonNull String name) throws IOException {
-        return new File(parent, name);
+    @Override
+    public long getUsedSpace() {
+        return getFolderSize(parent);
+    }
+
+    @Override
+    public String getOldestId() {
+        File oldest = null;
+        for (File file : parent.listFiles()) {
+
+            if (file.isDirectory()) {
+                continue;
+            }
+
+            if (oldest == null || file.lastModified() < oldest.lastModified()) {
+                oldest = file;
+            }
+
+        }
+        return oldest == null ? null : getIdByFile(oldest);
+    }
+
+    public File getFileById(@NonNull String id) {
+        return new File(parent, id);
+    }
+
+    public String getIdByFile(File file) {
+        return file.getName();
     }
 
 }

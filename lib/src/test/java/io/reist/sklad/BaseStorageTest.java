@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static io.reist.sklad.TestUtils.TEST_DATA;
+import static io.reist.sklad.TestUtils.TEST_DATA_1;
 import static io.reist.sklad.TestUtils.assertTestObject;
 import static io.reist.sklad.TestUtils.saveTestObject;
 import static org.junit.Assert.assertFalse;
@@ -38,9 +38,9 @@ public abstract class BaseStorageTest<S extends Storage> {
     @CallSuper
     public void testContains() throws Exception {
         S storage = createStorage();
-        assertFalse(storage.contains(TestUtils.TEST_NAME));
+        assertFalse(storage.contains(TestUtils.TEST_NAME_1));
         saveTestObject(storage);
-        assertTrue(storage.contains(TestUtils.TEST_NAME));
+        assertTrue(storage.contains(TestUtils.TEST_NAME_1));
     }
 
     @Test
@@ -60,8 +60,8 @@ public abstract class BaseStorageTest<S extends Storage> {
         S storage = createStorage();
         saveTestObject(storage);
         try {
-            storage.delete(TestUtils.TEST_NAME);
-            assertFalse(storage.contains(TestUtils.TEST_NAME));
+            storage.delete(TestUtils.TEST_NAME_1);
+            assertFalse(storage.contains(TestUtils.TEST_NAME_1));
         } catch (UnsupportedOperationException ignored) {}
     }
 
@@ -72,7 +72,7 @@ public abstract class BaseStorageTest<S extends Storage> {
         saveTestObject(storage);
         try {
             storage.deleteAll();
-            assertFalse(storage.contains(TestUtils.TEST_NAME));
+            assertFalse(storage.contains(TestUtils.TEST_NAME_1));
         } catch (UnsupportedOperationException ignored) {}
     }
 
@@ -81,7 +81,7 @@ public abstract class BaseStorageTest<S extends Storage> {
     public void testSkip() throws Exception {
         S storage = createStorage();
         saveTestObject(storage);
-        assertTestObject(storage, TEST_DATA.length / 2);
+        assertTestObject(storage, TEST_DATA_1.length / 2);
     }
 
 }

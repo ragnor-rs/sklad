@@ -58,7 +58,7 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
                 if (baseUrl == null) {
                     throw new IllegalStateException();
                 }
-                return baseUrl.toString() + invocation.getArguments()[0].toString();
+                return baseUrl.toString() + "/" + invocation.getArguments()[0].toString();
             }
 
         });
@@ -91,7 +91,7 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
     public void testStreams() throws Exception {
 
         Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(buffer));
@@ -144,7 +144,7 @@ public class NetworkStorageTest extends BaseStorageTest<NetworkStorage>  {
     public void testSkip() throws Exception {
 
         Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA));
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(buffer));
