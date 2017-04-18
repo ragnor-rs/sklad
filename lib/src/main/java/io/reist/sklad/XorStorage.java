@@ -13,15 +13,20 @@ import java.io.OutputStream;
 
 public class XorStorage implements JournalingStorage {
 
-    private static final int ENCRYPTION_BUFFER_SIZE = 96 * 1024;
-    private static final int ENCRYPTION_STEP_DENOMINATOR = 3;
-
-    private static final int LENGTH_TO_ENCRYPT = ENCRYPTION_BUFFER_SIZE / ENCRYPTION_STEP_DENOMINATOR;
+    private final int encryptionBufferSize;
+    private final int encryptionStepDenominator;
 
     private final JournalingStorage journalingStorage;
     private final KeyProvider keyProvider;
 
-    public XorStorage(JournalingStorage journalingStorage, KeyProvider keyProvider) {
+    public XorStorage(
+            int encryptionBufferSize,
+            int encryptionStepDenominator,
+            JournalingStorage journalingStorage,
+            KeyProvider keyProvider
+    ) {
+        this.encryptionBufferSize = encryptionBufferSize;
+        this.encryptionStepDenominator = encryptionStepDenominator;
         this.journalingStorage = journalingStorage;
         this.keyProvider = keyProvider;
     }
@@ -156,9 +161,10 @@ public class XorStorage implements JournalingStorage {
 
     }
 
-    private static byte xorIfNeeded(long pos, byte b, byte[] encryptionKey) {
-        long leftBoundary = (pos / ENCRYPTION_BUFFER_SIZE) * ENCRYPTION_BUFFER_SIZE;
-        long rightBoundary = leftBoundary + LENGTH_TO_ENCRYPT - 1;
+    private byte xorIfNeeded(long pos, byte b, byte[] encryptionKey) {
+        long leftBoundary = (pos / encryptionBufferSize) * encryptionBufferSize;
+        int lengthToEncrypt = encryptionBufferSize / encryptionStepDenominator;
+        long rightBoundary = leftBoundary + lengthToEncrypt - 1;
         if (leftBoundary <= pos && pos <= rightBoundary) {
             int keyPos = (int) ((pos - leftBoundary) % encryptionKey.length);
             return (byte) (b ^ encryptionKey[keyPos]);

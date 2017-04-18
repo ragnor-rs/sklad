@@ -33,8 +33,8 @@ import static org.junit.Assert.assertEquals;
 )
 public class XorStorageTest extends BaseStorageTest<XorStorage> {
 
-    private static final int ENCRYPTION_BUFFER_SIZE = 96 * 1024;
-    private static final int ENCRYPTION_STEP_DENOMINATOR = 3;
+    private static final int ENCRYPTION_BUFFER_SIZE = 128 * 1024;
+    private static final int ENCRYPTION_STEP_DENOMINATOR = 4;
 
     private static byte[] buffer = new byte[ENCRYPTION_BUFFER_SIZE];
 
@@ -130,6 +130,8 @@ public class XorStorageTest extends BaseStorageTest<XorStorage> {
     @NonNull
     static XorStorage createXorStorage(File fileDir) {
         return new XorStorage(
+                ENCRYPTION_BUFFER_SIZE,
+                ENCRYPTION_STEP_DENOMINATOR,
                 new FileStorage(fileDir),
                 new XorStorage.KeyProvider() {
 
