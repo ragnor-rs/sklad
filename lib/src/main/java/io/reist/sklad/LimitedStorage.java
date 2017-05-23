@@ -14,7 +14,8 @@ import java.io.OutputStream;
 public class LimitedStorage implements Storage {
 
     private final JournalingStorage journalingStorage;
-    private final int capacity;
+
+    private int capacity;
 
     public LimitedStorage(JournalingStorage journalingStorage, int capacity) {
         this.journalingStorage = journalingStorage;
@@ -31,19 +32,6 @@ public class LimitedStorage implements Storage {
     public OutputStream openOutputStream(@NonNull String id) throws IOException {
         final OutputStream outputStreamToWrap = journalingStorage.openOutputStream(id);
         return new OutputStream() {
-
-            private void allocate(int len) throws IOException {
-                while (capacity - journalingStorage.getUsedSpace() < len) {
-                    String oldestId = journalingStorage.getOldestId();
-                    if (oldestId == null) {
-                        throw new IOException("Out of free space");
-                    } else {
-                        if (!journalingStorage.delete(oldestId)) {
-                            throw new IOException("Unable to free space");
-                        }
-                    }
-                }
-            }
 
             @Override
             public void write(@NonNull byte[] b) throws IOException {
@@ -90,6 +78,24 @@ public class LimitedStorage implements Storage {
     @Override
     public void deleteAll() throws IOException {
         journalingStorage.deleteAll();
+    }
+
+    private void allocate(int len) throws IOException {
+        while (capacity - journalingStorage.getUsedSpace() < len) {
+            String oldestId = journalingStorage.getOldestId();
+            if (oldestId == null) {
+                throw new IOException("Out of free space");
+            } else {
+                if (!journalingStorage.delete(oldestId)) {
+                    throw new IOException("Unable to free space");
+                }
+            }
+        }
+    }
+
+    public void setCapacity(int capacity) throws IOException {
+        this.capacity = capacity;
+        allocate(0);
     }
 
 }
