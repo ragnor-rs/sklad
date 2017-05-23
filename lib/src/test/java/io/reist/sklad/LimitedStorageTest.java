@@ -73,11 +73,17 @@ public class LimitedStorageTest extends BaseStorageTest<LimitedStorage> {
 
     @Test
     public void testLimitChange() throws IOException {
-        LimitedStorage storage = createStorage();
-        saveTestObject(storage, TEST_NAME_1, TEST_DATA_1);
-        storage.setCapacity(TEST_DATA_1.length - 1);
-        assertFalse(storage.contains(TEST_NAME_1));
-    }
 
+        LimitedStorage storage = createStorage();
+
+        saveTestObject(storage, TEST_NAME_1, TEST_DATA_1);
+        storage.setCapacity(TEST_DATA_1.length / 2);
+        assertFalse(storage.contains(TEST_NAME_1));
+
+        saveTestObject(storage, TEST_NAME_1, TEST_DATA_1);
+        storage.setCapacity(TEST_DATA_1.length * 2);
+        assertTrue(storage.contains(TEST_NAME_1));
+
+    }
 
 }

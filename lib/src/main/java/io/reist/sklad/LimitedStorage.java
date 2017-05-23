@@ -84,7 +84,7 @@ public class LimitedStorage implements Storage {
         while (capacity - journalingStorage.getUsedSpace() < len) {
             String oldestId = journalingStorage.getOldestId();
             if (oldestId == null) {
-                throw new IOException("Out of free space");
+                break;
             } else {
                 if (!journalingStorage.delete(oldestId)) {
                     throw new IOException("Unable to free space");
