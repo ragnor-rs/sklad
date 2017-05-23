@@ -18,6 +18,7 @@ package io.reist.sklad;
 
 import org.junit.Assert;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -83,6 +84,21 @@ public class TestUtils {
         System.arraycopy(buffer, 0, actual, 0, bytesRead);
 
         Assert.assertArrayEquals(expected, actual);
+
+    }
+
+    static void assertHierarchy(File root, File file, File fileDeeper) {
+
+        File parent = file.getParentFile();
+        File parentDeeper = fileDeeper.getParentFile();
+
+        assertTrue(file.exists());
+        assertTrue(fileDeeper.exists());
+
+        String absolutePath = root.getAbsolutePath();
+        String parentAbsolutePath = parent.getAbsolutePath();
+        String parentDeeperAbsolutePath = parentDeeper.getAbsolutePath();
+        assertTrue(parentAbsolutePath.startsWith(absolutePath) && parentDeeperAbsolutePath.startsWith(absolutePath));
 
     }
 

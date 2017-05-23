@@ -15,7 +15,7 @@ public class FileUtils {
     public static void moveFile(File srcFile, File destFile) throws IOException {
         boolean rename = srcFile.renameTo(destFile);
         if (!rename) {
-            throw new IOException("Can't rename file");
+            throw new IOException("Can't rename file " + srcFile.getAbsolutePath());
         }
     }
 
@@ -67,4 +67,19 @@ public class FileUtils {
         return length;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void moveAllFiles(File from, File to) throws IOException {
+        for (File file : from.listFiles()) {
+            String absolutePath = file.getAbsolutePath();
+            String relative = absolutePath.substring(from.getAbsolutePath().length() + 1);
+            File newFile = new File(to, relative);
+            if (file.isDirectory()) {
+                newFile.mkdirs();
+                moveAllFiles(file, newFile);
+            } else {
+                moveFile(file, newFile);
+            }
+        }
+    }
+    
 }

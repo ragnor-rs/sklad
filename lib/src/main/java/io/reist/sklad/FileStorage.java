@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import io.reist.sklad.utils.FileUtils;
+
 import static io.reist.sklad.utils.FileUtils.getFolderSize;
 
 /**
@@ -34,7 +36,7 @@ import static io.reist.sklad.utils.FileUtils.getFolderSize;
  */
 public class FileStorage implements JournalingStorage {
 
-    private final File parent;
+    private File parent;
 
     public FileStorage(@NonNull File parent) {
         this.parent = parent;
@@ -45,10 +47,13 @@ public class FileStorage implements JournalingStorage {
         return getFileById(id).exists();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @NonNull
     @Override
     public OutputStream openOutputStream(@NonNull String id) throws IOException {
-        return new FileOutputStream(getFileById(id));
+        File file = getFileById(id);
+        file.getParentFile().mkdirs();
+        return new FileOutputStream(file);
     }
 
     @Nullable
@@ -102,6 +107,11 @@ public class FileStorage implements JournalingStorage {
 
     public String getIdByFile(File file) {
         return file.getName();
+    }
+
+    public void setParent(File parent) throws IOException {
+        FileUtils.moveAllFiles(this.parent, parent);
+        this.parent = parent;
     }
 
 }
