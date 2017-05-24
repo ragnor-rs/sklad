@@ -14,7 +14,7 @@ public class FileUtils {
         if (!rename) {
             throw new IOException(
                     "Can't rename file " + srcFile.getAbsolutePath() + " (" + srcFile.exists() + ") to " + dstFile.getAbsolutePath() + " (" + dstFile.exists() + ")\n" +
-                    "dst parent exists = " + dstFile.getParentFile().exists()
+                    "dst parent exists = " + dstFile.getParentFile().exists() + "\n"
             );
         }
     }
@@ -74,7 +74,7 @@ public class FileUtils {
             String relative = absolutePath.substring(from.getAbsolutePath().length() + 1);
             File newFile = new File(to, relative);
             if (file.isDirectory()) {
-                newFile.mkdirs();
+                System.out.println("create(" + newFile.getAbsoluteFile() + ") = " + newFile.mkdirs());
                 moveAllFiles(file, newFile);
             } else {
                 moveFile(file, newFile);
