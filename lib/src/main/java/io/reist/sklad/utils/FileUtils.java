@@ -13,7 +13,8 @@ public class FileUtils {
         boolean rename = srcFile.renameTo(dstFile);
         if (!rename) {
             throw new IOException(
-                    "Can't rename file " + srcFile.getAbsolutePath() + " (" + srcFile.exists() + ") to " + dstFile.getAbsolutePath() + " (" + dstFile.exists() + ")"
+                    "Can't rename file " + srcFile.getAbsolutePath() + " (" + srcFile.exists() + ") to " + dstFile.getAbsolutePath() + " (" + dstFile.exists() + ")\n" +
+                    "dst parent exists = " + dstFile.getParentFile().exists()
             );
         }
     }
