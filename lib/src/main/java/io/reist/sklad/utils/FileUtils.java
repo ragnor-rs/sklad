@@ -13,8 +13,7 @@ public class FileUtils {
         boolean rename = srcFile.renameTo(dstFile);
         if (!rename) {
             throw new IOException(
-                    "Can't rename file " + srcFile.getAbsolutePath() + " (" + srcFile.exists() + ") to " + dstFile.getAbsolutePath() + " (" + dstFile.exists() + ")\n" +
-                    "dst parent exists = " + dstFile.getParentFile().exists() + "\n"
+                    "Can't rename file " + srcFile.getAbsolutePath() + " (" + srcFile.exists() + ") to " + dstFile.getAbsolutePath() + " (" + dstFile.exists() + ")"
             );
         }
     }
@@ -69,6 +68,13 @@ public class FileUtils {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void moveAllFiles(File from, File to) throws IOException {
+
+        if (!from.exists() || !from.isDirectory()) {
+            throw new IOException(from.getAbsolutePath() + " must be an existing directory");
+        } else if (to.exists() && !to.isDirectory()) {
+            throw new IOException(to.getAbsolutePath() + " is not a directory");
+        }
+
         for (File file : from.listFiles()) {
             String absolutePath = file.getAbsolutePath();
             String relative = absolutePath.substring(from.getAbsolutePath().length() + 1);
@@ -80,6 +86,7 @@ public class FileUtils {
                 moveFile(file, newFile);
             }
         }
+
     }
     
 }
