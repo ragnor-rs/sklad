@@ -58,7 +58,7 @@ public class FileStorageTest extends BaseStorageTest<FileStorage> {
     public void testParentChange() throws IOException {
 
         String deeper = "deep" + "/" + TEST_NAME_1;
-        File cacheDir = RuntimeEnvironment.application.getCacheDir();
+        File cacheDir = new File(BuildConfig.BUILD_DIR);
 
         File root1 = new File(cacheDir, "root1");
         root1.mkdirs();
