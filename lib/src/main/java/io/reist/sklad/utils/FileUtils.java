@@ -7,15 +7,14 @@ import java.util.UUID;
 
 public class FileUtils {
 
+    private FileUtils() {}
 
-    private FileUtils() {
-        throw new AssertionError();
-    }
-
-    public static void moveFile(File srcFile, File destFile) throws IOException {
-        boolean rename = srcFile.renameTo(destFile);
+    public static void moveFile(File srcFile, File dstFile) throws IOException {
+        boolean rename = srcFile.renameTo(dstFile);
         if (!rename) {
-            throw new IOException("Can't rename file " + srcFile.getAbsolutePath());
+            throw new IOException(
+                    "Can't rename file " + srcFile.getAbsolutePath() + " (" + srcFile.exists() + ") to " + dstFile.getAbsolutePath() + " (" + dstFile.exists() + ")"
+            );
         }
     }
 
