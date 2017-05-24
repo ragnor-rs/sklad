@@ -71,8 +71,12 @@ public class FileUtils {
 
         if (!from.exists() || !from.isDirectory()) {
             throw new IOException(from.getAbsolutePath() + " must be an existing directory");
-        } else if (to.exists() && !to.isDirectory()) {
+        }
+
+        if (to.exists() && !to.isDirectory()) {
             throw new IOException(to.getAbsolutePath() + " is not a directory");
+        } else if (!to.exists() && !to.mkdirs()) {
+            throw new IOException("Can't create " + to.getAbsolutePath());
         }
 
         for (File file : from.listFiles()) {
