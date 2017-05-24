@@ -17,7 +17,7 @@ script:
     - jdk_switcher use oraclejdk8
     - export GRADLE_OPTS="-Xmx1536m -Xms768m -Xss32m"
     - ./gradlew clean build
-    - cat /home/travis/build/ragnor-rs/sklad/lib/build/reports/tests/testDebugUnitTest/debug/index.html
+    - cat /home/travis/build/ragnor-rs/sklad/lib/build/reports/tests/testDebugUnitTest/debug/classes/io.reist.sklad.FileStorageTest.html
 
 before_cache:
     - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
