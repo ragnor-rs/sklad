@@ -50,7 +50,7 @@ public class FileStorage implements JournalingStorage {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @NonNull
     @Override
-    public OutputStream openOutputStream(@NonNull String id) throws IOException {
+    public synchronized OutputStream openOutputStream(@NonNull String id) throws IOException {
         File file = getFileById(id);
         file.getParentFile().mkdirs();
         return new FileOutputStream(file);
@@ -67,12 +67,12 @@ public class FileStorage implements JournalingStorage {
     }
 
     @Override
-    public boolean delete(@NonNull String id) throws IOException {
+    public synchronized boolean delete(@NonNull String id) throws IOException {
         return getFileById(id).delete();
     }
 
     @Override
-    public void deleteAll() throws IOException {
+    public synchronized void deleteAll() throws IOException {
         String[] ids = parent.list();
         for (String id : ids) {
             delete(id);
@@ -109,7 +109,7 @@ public class FileStorage implements JournalingStorage {
         return file.getName();
     }
 
-    public void setParent(File parent) throws IOException {
+    public synchronized void setParent(File parent) throws IOException {
         FileUtils.moveAllFiles(this.parent, parent);
         this.parent = parent;
     }

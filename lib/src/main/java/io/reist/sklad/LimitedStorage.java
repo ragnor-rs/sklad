@@ -15,9 +15,9 @@ public class LimitedStorage implements Storage {
 
     private final JournalingStorage journalingStorage;
 
-    private int capacity;
+    private long capacity;
 
-    public LimitedStorage(JournalingStorage journalingStorage, int capacity) {
+    public LimitedStorage(JournalingStorage journalingStorage, long capacity) {
         this.journalingStorage = journalingStorage;
         this.capacity = capacity;
     }
@@ -31,37 +31,46 @@ public class LimitedStorage implements Storage {
     @Override
     public OutputStream openOutputStream(@NonNull String id) throws IOException {
         final OutputStream outputStreamToWrap = journalingStorage.openOutputStream(id);
-        return new OutputStream() {
+        if (capacity == 0) {
+            return new OutputStream() {
 
-            @Override
-            public void write(@NonNull byte[] b) throws IOException {
-                allocate(b.length);
-                outputStreamToWrap.write(b);
-            }
+                @Override
+                public void write(int b) throws IOException {}
 
-            @Override
-            public void write(@NonNull byte[] b, int off, int len) throws IOException {
-                allocate(len);
-                outputStreamToWrap.write(b, off, len);
-            }
+            };
+        } else {
+            return new OutputStream() {
 
-            @Override
-            public void write(int b) throws IOException {
-                allocate(1);
-                outputStreamToWrap.write(b);
-            }
+                @Override
+                public void write(@NonNull byte[] b) throws IOException {
+                    allocate(b.length);
+                    outputStreamToWrap.write(b);
+                }
 
-            @Override
-            public void close() throws IOException {
-                outputStreamToWrap.close();
-            }
+                @Override
+                public void write(@NonNull byte[] b, int off, int len) throws IOException {
+                    allocate(len);
+                    outputStreamToWrap.write(b, off, len);
+                }
 
-            @Override
-            public void flush() throws IOException {
-                outputStreamToWrap.flush();
-            }
+                @Override
+                public void write(int b) throws IOException {
+                    allocate(1);
+                    outputStreamToWrap.write(b);
+                }
 
-        };
+                @Override
+                public void close() throws IOException {
+                    outputStreamToWrap.close();
+                }
+
+                @Override
+                public void flush() throws IOException {
+                    outputStreamToWrap.flush();
+                }
+
+            };
+        }
     }
 
     @Nullable
@@ -81,6 +90,11 @@ public class LimitedStorage implements Storage {
     }
 
     private void allocate(int len) throws IOException {
+
+        if (capacity == -1) {
+            return;
+        }
+
         while (capacity - journalingStorage.getUsedSpace() < len) {
             String oldestId = journalingStorage.getOldestId();
             if (oldestId == null) {
@@ -91,9 +105,10 @@ public class LimitedStorage implements Storage {
                 }
             }
         }
+
     }
 
-    public void setCapacity(int capacity) throws IOException {
+    public void setCapacity(long capacity) throws IOException {
         this.capacity = capacity;
         allocate(0);
     }

@@ -86,4 +86,28 @@ public class LimitedStorageTest extends BaseStorageTest<LimitedStorage> {
 
     }
 
+    @Test
+    public void testDisabledStorage() throws IOException {
+        LimitedStorage storage = createStorage();
+        storage.setCapacity(0);
+        saveTestObject(storage, TEST_NAME_1, TEST_DATA_1);
+        assertFalse(storage.contains(TEST_NAME_1));
+    }
+
+    @Test
+    public void testUnlimitedStorage() throws IOException {
+
+        LimitedStorage storage = createStorage();
+        storage.setCapacity(-1);
+
+        saveTestObject(storage, TEST_NAME_1, TEST_DATA_1);
+        saveTestObject(storage, TEST_NAME_2, TEST_DATA_2);
+        saveTestObject(storage, TEST_NAME_3, TEST_DATA_3);
+
+        assertTrue(storage.contains(TEST_NAME_1));
+        assertTrue(storage.contains(TEST_NAME_2));
+        assertTrue(storage.contains(TEST_NAME_3));
+
+    }
+
 }
