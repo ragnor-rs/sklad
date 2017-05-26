@@ -113,4 +113,8 @@ public class LimitedStorage implements Storage {
         allocate(0);
     }
 
+    public long getCapacity() {
+        return capacity;
+    }
+
 }
