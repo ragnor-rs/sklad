@@ -55,14 +55,14 @@ import static org.junit.Assert.assertTrue;
         sdk = Build.VERSION_CODES.LOLLIPOP,
         shadows = ShadowNetworkSecurityPolicy.class
 )
-public class CacheStorageTest extends BaseStorageTest<CacheStorage> {
+public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
     protected HttpUrl baseUrl;
 
     @Override
     @NonNull
-    protected CacheStorage createStorage() throws IOException {
-        return new CacheStorage(
+    protected CachedStorage createStorage() throws IOException {
+        return new CachedStorage(
                 NetworkStorageTest.createNetworkStorage(baseUrl),
                 createEncryptedStorage(RuntimeEnvironment.application.getCacheDir())
         );
@@ -89,7 +89,7 @@ public class CacheStorageTest extends BaseStorageTest<CacheStorage> {
 
         super.testContains();
 
-        CacheStorage storage = createStorage();
+        CachedStorage storage = createStorage();
 
         OutputStream localStream = storage.getLocal().openOutputStream(TestUtils.TEST_NAME_2);
         localStream.write(TestUtils.TEST_DATA_2);
@@ -142,7 +142,7 @@ public class CacheStorageTest extends BaseStorageTest<CacheStorage> {
 
         baseUrl = server.url("/");
 
-        CacheStorage storage = createStorage();
+        CachedStorage storage = createStorage();
         storage.cache(TEST_NAME_1);
         assertTestObject(storage.getLocal());
 
@@ -162,7 +162,7 @@ public class CacheStorageTest extends BaseStorageTest<CacheStorage> {
 
         baseUrl = server.url("/");
 
-        CacheStorage storage = createStorage();
+        CachedStorage storage = createStorage();
         InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME_1);
         assertNotNull(inputStream);
         int b = inputStream.read();
@@ -189,7 +189,7 @@ public class CacheStorageTest extends BaseStorageTest<CacheStorage> {
 
         baseUrl = server.url("/");
 
-        CacheStorage storage = createStorage();
+        CachedStorage storage = createStorage();
         InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME_1);
         assertNotNull(inputStream);
         try {
@@ -216,7 +216,7 @@ public class CacheStorageTest extends BaseStorageTest<CacheStorage> {
 
         baseUrl = server.url("/");
 
-        CacheStorage storage = createStorage();
+        CachedStorage storage = createStorage();
         InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME_1);
         assertNotNull(inputStream);
         try {

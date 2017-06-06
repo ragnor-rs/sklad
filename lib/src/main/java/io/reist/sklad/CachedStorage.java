@@ -26,14 +26,14 @@ import java.io.OutputStream;
 /**
  * Created by Reist on 25.06.16.
  */
-public class CacheStorage implements Storage {
+public class CachedStorage implements Storage {
 
-    private static final String TAG = CacheStorage.class.getSimpleName();
+    private static final String TAG = CachedStorage.class.getSimpleName();
 
     private final Storage remote;
     private final Storage local;
 
-    public CacheStorage(
+    public CachedStorage(
             @NonNull Storage remote,
             @NonNull Storage local
     ) {
