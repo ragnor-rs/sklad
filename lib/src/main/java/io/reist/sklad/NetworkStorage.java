@@ -21,8 +21,15 @@ import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
+import java.net.ConnectException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.Connection;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -34,18 +41,47 @@ import okio.BufferedSource;
  */
 public class NetworkStorage implements Storage {
 
-    private final OkHttpClient client = new OkHttpClient();
+    private final List<Request> activeRequests = new CopyOnWriteArrayList<>();
+
+    private final OkHttpClient client;
 
     private final UrlResolver urlResolver;
 
     public NetworkStorage(UrlResolver urlResolver) {
+        this(urlResolver, 10, 10, 10);
+    }
+
+    public NetworkStorage(
+            UrlResolver urlResolver,
+            final long connectTimeout,
+            final long readTimeout,
+            final long writeTimeout
+    ) {
+
         this.urlResolver = urlResolver;
+
+        this.client = new OkHttpClient.Builder()
+                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                .readTimeout(readTimeout, TimeUnit.SECONDS)
+                .writeTimeout(writeTimeout, TimeUnit.SECONDS)
+                .addNetworkInterceptor(new StuckOnReadHeadersInterceptor(readTimeout, this))
+                .build();
+
     }
 
     private Response request(@NonNull String name) throws IOException {
         String url = urlResolver.toUrl(name);
         Request request = new Request.Builder().url(url).build();
-        return client.newCall(request).execute();
+        activeRequests.add(request);
+        try {
+            return client.newCall(request).execute();
+        } catch (ConnectException e) {
+            if (!activeRequests.contains(request)) {
+                throw new InterruptedIOException();
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override
@@ -132,6 +168,64 @@ public class NetworkStorage implements Storage {
     @Override
     public void deleteAll() throws IOException {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Forces a thread which performs socket reading to throw {@link ConnectException}
+     * if {@link java.net.SocketTimeoutException} is not thrown within timeout interval.
+     * See https://bugs.openjdk.java.net/browse/JDK-8049846
+     */
+    private static class StuckOnReadHeadersInterceptor implements Interceptor {
+
+        private final List<Chain> activeChains = new CopyOnWriteArrayList<>();
+
+        private final long readTimeout;
+        private final NetworkStorage parent;
+
+        StuckOnReadHeadersInterceptor(long readTimeout, NetworkStorage parent) {
+            this.readTimeout = readTimeout;
+            this.parent = parent;
+        }
+
+        @Override
+        public Response intercept(final Chain chain) throws IOException {
+            activeChains.add(chain);
+            final Connection connection = chain.connection();
+            (new Thread() {
+
+                @SuppressWarnings("SuspiciousMethodCalls")
+                @Override
+                public void run() {
+
+                    // wait more than just timeout to distinguish from real timeout
+                    // in NetworkStorage.request
+                    try {
+                        sleep(readTimeout + 1000);
+                    } catch (InterruptedException ignored) {}
+
+                    try {
+                         if (activeChains.contains(chain)) {
+
+                            // tag refers to the original request
+                            parent.activeRequests.remove(chain.request().tag());
+
+                            try {
+                                connection.socket().close();
+                            } catch (IOException ignored) {}
+
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+
+            }).start();
+            Response proceed = chain.proceed(chain.request());
+            activeChains.remove(chain);
+            return proceed;
+        }
+
     }
 
 }

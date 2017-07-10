@@ -55,9 +55,13 @@ public class MemoryStorage implements JournalingStorage {
     @Override
     public InputStream openInputStream(@NonNull String id) {
         DataHolder dataHolder = dataMap.get(id);
-        return dataHolder == null ?
-                null :
-                new ByteArrayInputStream(dataHolder.data, 0, dataHolder.length);
+        if (dataHolder == null) {
+            return null;
+        } else {
+            return new InterruptibleInputStream(
+                    new ByteArrayInputStream(dataHolder.data, 0, dataHolder.length)
+            );
+        }
     }
 
     @Override

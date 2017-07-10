@@ -32,9 +32,7 @@ import java.io.IOException;
 import static io.reist.sklad.TestUtils.TEST_DATA_1;
 import static io.reist.sklad.TestUtils.TEST_NAME_1;
 import static io.reist.sklad.TestUtils.saveTestObject;
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
 
 /**
  * Created by Reist on 28.06.16.

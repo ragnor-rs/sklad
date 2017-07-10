@@ -19,7 +19,6 @@ package io.reist.sklad;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -33,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okio.Buffer;
@@ -55,9 +53,7 @@ import static org.junit.Assert.assertTrue;
         sdk = Build.VERSION_CODES.LOLLIPOP,
         shadows = ShadowNetworkSecurityPolicy.class
 )
-public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
-
-    protected HttpUrl baseUrl;
+public class CachedStorageTest extends BaseNetworkStorageTest<CachedStorage> {
 
     @Override
     @NonNull
@@ -75,7 +71,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
     @Test
     @Override
-    public void testContains() throws Exception {
+    public final void testContains() throws Exception {
 
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setResponseCode(404)); // remote doesn't contain TEST_NAME_1 (before save)
@@ -112,26 +108,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     }
 
     @Test
-    @Override
-    public void testStreams() throws Exception {
-
-        Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
-
-        MockWebServer server = new MockWebServer();
-        server.enqueue(new MockResponse().setBody(buffer));
-        server.start();
-
-        baseUrl = server.url("/");
-
-        super.testStreams();
-
-        server.shutdown();
-
-    }
-
-    @Test
-    public void testDownload() throws Exception {
+    public final void testDownload() throws Exception {
 
         Buffer buffer = new Buffer();
         buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
@@ -151,7 +128,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
     }
 
     @Test
-    public void testPartialCaching() throws Exception {
+    public final void testPartialCaching() throws Exception {
 
         Buffer buffer = new Buffer();
         buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
@@ -178,7 +155,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Test
-    public void testCachingViaEof() throws Exception {
+    public final void testCachingViaEof() throws Exception {
 
         Buffer buffer = new Buffer();
         buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
@@ -205,7 +182,7 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
 
     @SuppressWarnings({"StatementWithEmptyBody", "ResultOfMethodCallIgnored"})
     @Test
-    public void testCachingViaAvailable() throws Exception {
+    public final void testCachingViaAvailable() throws Exception {
 
         Buffer buffer = new Buffer();
         buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
@@ -230,60 +207,6 @@ public class CachedStorageTest extends BaseStorageTest<CachedStorage> {
         inputStream.close();
 
         TestUtils.assertTestObject(storage.getLocal());
-
-        server.shutdown();
-
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        baseUrl = null;
-    }
-
-    @Override
-    public void testDeleteAll() throws Exception {
-
-        MockWebServer server = new MockWebServer();
-        server.enqueue(new MockResponse().setResponseCode(404)); // force no files for cache
-        server.start();
-
-        baseUrl = server.url("/");
-
-        super.testDeleteAll();
-
-        server.shutdown();
-
-    }
-
-    @Override
-    public void testDelete() throws Exception {
-
-        MockWebServer server = new MockWebServer();
-        server.enqueue(new MockResponse().setResponseCode(404)); // force no files for cache
-        server.start();
-
-        baseUrl = server.url("/");
-
-        super.testDelete();
-
-        server.shutdown();
-
-    }
-
-    @Test
-    @Override
-    public void testSkip() throws Exception {
-
-        Buffer buffer = new Buffer();
-        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
-
-        MockWebServer server = new MockWebServer();
-        server.enqueue(new MockResponse().setBody(buffer));
-        server.start();
-
-        baseUrl = server.url("/");
-
-        super.testSkip();
 
         server.shutdown();
 

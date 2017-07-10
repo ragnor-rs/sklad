@@ -57,58 +57,7 @@ public class ZipStorage implements Storage {
         if (contains(id)) {
             final ZipFile zipFile = new ZipFile(file);
             final InputStream inputStream = zipFile.getInputStream(zipFile.getEntry(id));
-            return new InputStream() {
-
-                @Override
-                public int read(@NonNull byte[] b) throws IOException {
-                    return inputStream.read(b);
-                }
-
-                @Override
-                public int read(@NonNull byte[] b, int off, int len) throws IOException {
-                    return inputStream.read(b, off, len);
-                }
-
-                @Override
-                public long skip(long n) throws IOException {
-                    return inputStream.skip(n);
-                }
-
-                @Override
-                public int available() throws IOException {
-                    return inputStream.available();
-                }
-
-                @Override
-                public void close() throws IOException {
-                    try {
-                        inputStream.close();
-                    } finally {
-                        zipFile.close();
-                    }
-                }
-
-                @Override
-                public synchronized void mark(int readlimit) {
-                    inputStream.mark(readlimit);
-                }
-
-                @Override
-                public synchronized void reset() throws IOException {
-                    inputStream.reset();
-                }
-
-                @Override
-                public boolean markSupported() {
-                    return inputStream.markSupported();
-                }
-
-                @Override
-                public int read() throws IOException {
-                    return inputStream.read();
-                }
-
-            };
+            return new InterruptibleInputStream(new ZipInputStream(inputStream, zipFile));
         } else {
             return null;
         }
@@ -178,6 +127,67 @@ public class ZipStorage implements Storage {
 
     public File getFile() {
         return file;
+    }
+
+    private static class ZipInputStream extends InputStream {
+
+        private final InputStream inputStream;
+        private final ZipFile zipFile;
+
+        public ZipInputStream(InputStream inputStream, ZipFile zipFile) {
+            this.inputStream = inputStream;
+            this.zipFile = zipFile;
+        }
+
+        @Override
+        public int read(@NonNull byte[] b) throws IOException {
+            return inputStream.read(b);
+        }
+
+        @Override
+        public int read(@NonNull byte[] b, int off, int len) throws IOException {
+            return inputStream.read(b, off, len);
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            return inputStream.skip(n);
+        }
+
+        @Override
+        public int available() throws IOException {
+            return inputStream.available();
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                inputStream.close();
+            } finally {
+                zipFile.close();
+            }
+        }
+
+        @Override
+        public synchronized void mark(int readlimit) {
+            inputStream.mark(readlimit);
+        }
+
+        @Override
+        public synchronized void reset() throws IOException {
+            inputStream.reset();
+        }
+
+        @Override
+        public boolean markSupported() {
+            return inputStream.markSupported();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return inputStream.read();
+        }
+
     }
 
 }

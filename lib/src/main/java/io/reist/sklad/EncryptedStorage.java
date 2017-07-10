@@ -65,8 +65,8 @@ public class EncryptedStorage implements Storage {
     @Override
     public OutputStream openOutputStream(@NonNull String id) throws IOException {
         try {
-            Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, key);
             OutputStream outputStream = wrappedStorage.openOutputStream(id);
+            Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, key);
             return new CipherOutputStream(outputStream, cipher);
         } catch (GeneralSecurityException e) {
             throw new IOException(e);
@@ -77,27 +77,13 @@ public class EncryptedStorage implements Storage {
     @Override
     public InputStream openInputStream(@NonNull final String id) throws IOException {
         try {
-            Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             final InputStream inputStream = wrappedStorage.openInputStream(id);
-            return inputStream == null ? null : new CipherInputStream(inputStream, cipher) {
-
-                @Override
-                public int available() throws IOException {
-                    return inputStream.available();
-                }
-
-                @Override
-                public long skip(long n) throws IOException {
-                    byte[] data = new byte[1024];
-                    int read;
-                    long skipped = 0;
-                    while ((read = read(data, 0, (int) Math.min(data.length, n - skipped))) > 0) {
-                        skipped += read;
-                    }
-                    return skipped;
-                }
-
-            };
+            if (inputStream == null) {
+                return null;
+            } else {
+                Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
+                return new InterruptibleInputStream(new EncryptedInputStream(inputStream, cipher));
+            }
         } catch (GeneralSecurityException e) {
             throw new IOException(e);
         }
@@ -111,6 +97,33 @@ public class EncryptedStorage implements Storage {
     @Override
     public void deleteAll() throws IOException {
         wrappedStorage.deleteAll();
+    }
+
+    private static class EncryptedInputStream extends CipherInputStream {
+
+        private final InputStream inputStream;
+
+        public EncryptedInputStream(InputStream inputStream, Cipher cipher) {
+            super(inputStream, cipher);
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public int available() throws IOException {
+            return inputStream.available();
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            byte[] data = new byte[1024];
+            int read;
+            long skipped = 0;
+            while ((read = read(data, 0, (int) Math.min(data.length, n - skipped))) > 0) {
+                skipped += read;
+            }
+            return skipped;
+        }
+
     }
 
 }

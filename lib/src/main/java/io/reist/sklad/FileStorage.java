@@ -60,7 +60,7 @@ public class FileStorage implements JournalingStorage {
     @Override
     public InputStream openInputStream(@NonNull String id) throws IOException {
         try {
-            return new FileInputStream(getFileById(id));
+            return new InterruptibleInputStream(new FileInputStream(getFileById(id)));
         } catch (FileNotFoundException e) {
             return null;
         }

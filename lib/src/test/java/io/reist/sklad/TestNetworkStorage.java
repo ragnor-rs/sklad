@@ -33,7 +33,12 @@ public class TestNetworkStorage extends NetworkStorage {
     private final NetworkStorage mock = Mockito.mock(NetworkStorage.class);
 
     TestNetworkStorage(UrlResolver urlResolver) {
-        super(urlResolver);
+        super(
+                urlResolver,
+                BaseStorageTest.WORKER_DURATION * 2,
+                BaseStorageTest.WORKER_DURATION * 2,
+                BaseStorageTest.WORKER_DURATION * 2
+        );
     }
 
     @NonNull
