@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +76,7 @@ public class NetworkStorage implements Storage {
         activeRequests.add(request);
         try {
             return client.newCall(request).execute();
-        } catch (ConnectException e) {
+        } catch (SocketException e) {
             if (!activeRequests.contains(request)) {
                 throw new InterruptedIOException();
             } else {
