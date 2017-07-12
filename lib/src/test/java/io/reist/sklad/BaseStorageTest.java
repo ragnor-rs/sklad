@@ -114,6 +114,9 @@ public abstract class BaseStorageTest<S extends Storage> {
         }
 
         assertNotNull(worker.exception);
+
+        worker.exception.printStackTrace();
+
         assertEquals(InterruptedIOException.class, worker.exception.getClass());
 
     }
