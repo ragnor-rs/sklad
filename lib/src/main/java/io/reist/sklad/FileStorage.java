@@ -73,9 +73,9 @@ public class FileStorage implements JournalingStorage {
 
     @Override
     public synchronized void deleteAll() throws IOException {
-        String[] ids = parent.list();
-        for (String id : ids) {
-            delete(id);
+        File[] files = parent.listFiles();
+        for (File f : files) {
+            f.delete();
         }
     }
 
