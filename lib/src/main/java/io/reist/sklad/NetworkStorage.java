@@ -58,16 +58,23 @@ public class NetworkStorage implements Storage {
             final long readTimeout,
             final long writeTimeout
     ) {
+        this(
+                urlResolver,
+                new ClientConfigurator(
+                        readTimeout,
+                        connectTimeout,
+                        writeTimeout
+                )
+        );
+    }
 
+
+    public NetworkStorage(
+            UrlResolver urlResolver,
+            ClientConfigurator clientConfigurator
+    ) {
         this.urlResolver = urlResolver;
-
-        this.client = new OkHttpClient.Builder()
-                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
-                .readTimeout(readTimeout, TimeUnit.SECONDS)
-                .writeTimeout(writeTimeout, TimeUnit.SECONDS)
-                .addNetworkInterceptor(new StuckOnReadHeadersInterceptor(readTimeout, this))
-                .build();
-
+        this.client = clientConfigurator.configure(new OkHttpClient.Builder(), this).build();
     }
 
     private Response request(@NonNull String name) throws IOException {
@@ -225,6 +232,42 @@ public class NetworkStorage implements Storage {
             Response proceed = chain.proceed(chain.request());
             activeChains.remove(chain);
             return proceed;
+        }
+
+    }
+
+    public static class ClientConfigurator {
+
+        private final long readTimeout;
+        private final long connectTimeout;
+        private final long writeTimeout;
+
+        public ClientConfigurator(
+                long readTimeout,
+                long connectTimeout,
+                long writeTimeout
+        ) {
+            this.readTimeout = readTimeout;
+            this.connectTimeout = connectTimeout;
+            this.writeTimeout = writeTimeout;
+        }
+
+        protected OkHttpClient.Builder configure(
+                OkHttpClient.Builder builder,
+                NetworkStorage networkStorage
+        ) {
+
+            StuckOnReadHeadersInterceptor interceptor = new StuckOnReadHeadersInterceptor(
+                    readTimeout,
+                    networkStorage
+            );
+
+            return builder
+                    .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                    .writeTimeout(writeTimeout, TimeUnit.SECONDS)
+                    .readTimeout(readTimeout, TimeUnit.SECONDS)
+                    .addNetworkInterceptor(interceptor);
+
         }
 
     }
