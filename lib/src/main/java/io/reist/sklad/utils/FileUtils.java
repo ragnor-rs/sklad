@@ -57,11 +57,14 @@ public class FileUtils {
 
     public static long getFolderSize(File directory) {
         long length = 0;
-        for (File file : directory.listFiles()) {
-            if (file.isFile())
-                length += file.length();
-            else
-                length += getFolderSize(file);
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile())
+                    length += file.length();
+                else
+                    length += getFolderSize(file);
+            }
         }
         return length;
     }
