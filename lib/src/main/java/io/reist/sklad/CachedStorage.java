@@ -33,6 +33,8 @@ public class CachedStorage implements Storage {
     private final Storage remote;
     private final Storage local;
 
+    private boolean lazyCaching;
+
     public CachedStorage(
             @NonNull Storage remote,
             @NonNull Storage local
@@ -64,8 +66,8 @@ public class CachedStorage implements Storage {
 
             final InputStream srcStream = remote.openInputStream(id);
 
-            if (srcStream == null) {
-                return null;
+            if (srcStream == null || this.lazyCaching) {
+                return srcStream;
             }
 
             final OutputStream dstStream = local.openOutputStream(id);
@@ -244,6 +246,14 @@ public class CachedStorage implements Storage {
 
     public boolean purge(@NonNull String id) throws IOException {
         return local.delete(id);
+    }
+
+    public void setLazyCaching(boolean lazyCaching) {
+        this.lazyCaching = lazyCaching;
+    }
+
+    public boolean isLazyCaching(boolean lazyCaching) {
+        return lazyCaching;
     }
 
 }

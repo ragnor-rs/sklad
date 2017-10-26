@@ -19,7 +19,7 @@ package io.reist.sklad;
 import java.io.IOException;
 
 /**
- * Transforms {@link StorageObject} ids into URLs.
+ * Transforms {@link Storage} ids into URLs.
  *
  * @see NetworkStorage
  */
