@@ -1,6 +1,8 @@
 package io.reist.sklad.utils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -9,12 +11,34 @@ public class FileUtils {
 
     private FileUtils() {}
 
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "TryFinallyCanBeTryWithResources"})
     public static void moveFile(File srcFile, File dstFile) throws IOException {
-        boolean rename = srcFile.renameTo(dstFile);
-        if (!rename) {
-            throw new IOException(
-                    "Can't rename file " + srcFile.getAbsolutePath() + " (" + srcFile.exists() + ") to " + dstFile.getAbsolutePath() + " (" + dstFile.exists() + ")"
-            );
+        if (dstFile.exists()) {
+            throw new IOException("Destination file already exists: " + dstFile.getAbsolutePath());
+        }
+        File dstContainer = dstFile.getParentFile();
+        dstContainer.mkdirs();
+        if (!dstContainer.exists()) {
+            throw new IOException("Destination container doesn't exist: " + dstContainer.getAbsolutePath());
+        }
+        FileOutputStream fileOutputStream = new FileOutputStream(dstFile);
+        try {
+            FileInputStream fileInputStream = new FileInputStream(srcFile);
+            try {
+                byte[] data = new byte[16 * 1024];
+                int n;
+                while ((n = fileInputStream.read(data)) > 0) {
+                    fileOutputStream.write(data, 0, n);
+                }
+                fileOutputStream.flush();
+            } finally {
+                fileInputStream.close();
+            }
+        } finally {
+            fileOutputStream.close();
+        }
+        if (!srcFile.delete()) {
+            throw new IOException("Can't delete the source file: " + srcFile.getAbsolutePath());
         }
     }
 
@@ -26,6 +50,7 @@ public class FileUtils {
      * <li>if path exist, delete recursion. return true</li>
      * <ul>
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean deleteFile(File file) {
         if (!file.exists()) {
             return true;
@@ -36,7 +61,11 @@ public class FileUtils {
         if (!file.isDirectory()) {
             return false;
         }
-        for (File f : file.listFiles()) {
+        File[] files = file.listFiles();
+        if (files == null) {
+            return false;
+        }
+        for (File f : files) {
             if (f.isFile()) {
                 //noinspection ResultOfMethodCallIgnored
                 f.delete();
@@ -51,6 +80,7 @@ public class FileUtils {
         return File.createTempFile(tempName(), null, directory);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static String tempName() {
         return UUID.randomUUID().toString();
     }
@@ -82,7 +112,13 @@ public class FileUtils {
             throw new IOException("Can't create " + to.getAbsolutePath());
         }
 
-        for (File file : from.listFiles()) {
+        File[] files = from.listFiles();
+
+        if (files == null) {
+            throw new IOException("from.listFiles returned null");
+        }
+
+        for (File file : files) {
             String absolutePath = file.getAbsolutePath();
             String relative = absolutePath.substring(from.getAbsolutePath().length() + 1);
             File newFile = new File(to, relative);
