@@ -71,12 +71,10 @@ public class FileStorage implements JournalingStorage {
         return getFileById(id).delete();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public synchronized void deleteAll() throws IOException {
-        File[] files = parent.listFiles();
-        for (File f : files) {
-            f.delete();
-        }
+        FileUtils.deleteFile(parent);
     }
 
     @Override
@@ -87,16 +85,19 @@ public class FileStorage implements JournalingStorage {
     @Override
     public String getOldestId() {
         File oldest = null;
-        for (File file : parent.listFiles()) {
+        File[] files = parent.listFiles();
+        if (files != null) {
+            for (File file : files) {
 
-            if (file.isDirectory()) {
-                continue;
+                if (file.isDirectory()) {
+                    continue;
+                }
+
+                if (oldest == null || file.lastModified() < oldest.lastModified()) {
+                    oldest = file;
+                }
+
             }
-
-            if (oldest == null || file.lastModified() < oldest.lastModified()) {
-                oldest = file;
-            }
-
         }
         return oldest == null ? null : getIdByFile(oldest);
     }
