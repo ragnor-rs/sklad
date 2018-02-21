@@ -41,22 +41,22 @@ def robolectricVersion = "3.1.4"
 
 dependencies {
 
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.android.support:support-annotations:27.0.2'
-    compile 'com.squareup.okhttp3:okhttp:' + okhttpVersion
+    implementation 'com.android.support:support-annotations:27.0.2'
+    implementation 'com.squareup.okhttp3:okhttp:' + okhttpVersion
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 
-    testCompile 'org.assertj:assertj-core:3.8.0'
-    testCompile 'org.mockito:mockito-core:2.8.47'
+    testImplementation 'org.assertj:assertj-core:3.8.0'
+    testImplementation 'org.mockito:mockito-core:2.8.47'
 
-    testCompile "org.robolectric:robolectric:" + robolectricVersion
-    testCompile "org.robolectric:robolectric-annotations:" + robolectricVersion
+    testImplementation "org.robolectric:robolectric:" + robolectricVersion
+    testImplementation "org.robolectric:robolectric-annotations:" + robolectricVersion
 
-    testCompile 'com.squareup.okhttp3:mockwebserver:' + okhttpVersion
+    testImplementation 'com.squareup.okhttp3:mockwebserver:' + okhttpVersion
 
-    testCompile 'commons-io:commons-io:2.5'
+    testImplementation 'commons-io:commons-io:2.5'
 
 }
 
