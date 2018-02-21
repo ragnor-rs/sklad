@@ -45,29 +45,7 @@ public class CachedStorage implements Storage {
             @NonNull Storage remote,
             @NonNull Storage local
     ) {
-        this(remote, local, new CachedStorageStates() {
-
-            @Override
-            public void setFullyCached(Storage local, String id, boolean readFully) {
-                if (!readFully) {
-                    try {
-                        local.delete(id);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Error removing bad cache object " + id, e);
-                    }
-                }
-            }
-
-            @Override
-            public boolean isFullyCached(Storage local, String id) {
-                try {
-                    return local.contains(id);
-                } catch (IOException e) {
-                    throw new RuntimeException("Error checking cache object " + id, e);
-                }
-            }
-
-        });
+        this(remote, local, new SimpleCachedStorageStates());
     }
 
     public CachedStorage(
@@ -280,7 +258,11 @@ public class CachedStorage implements Storage {
     }
 
     public boolean purge(@NonNull String id) throws IOException {
-        return local.delete(id);
+        boolean deleted = local.delete(id);
+        if (deleted) {
+            cachedStorageStates.setFullyCached(local, id, false);
+        }
+        return deleted;
     }
 
     public void setLazyCaching(boolean lazyCaching) {
