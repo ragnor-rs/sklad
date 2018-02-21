@@ -30,8 +30,14 @@ public class CachedStorage implements Storage {
 
     private static final String TAG = CachedStorage.class.getSimpleName();
 
+    @NonNull
     private final Storage remote;
+
+    @NonNull
     private final Storage local;
+
+    @NonNull
+    private final CachedStorageStates cachedStorageStates;
 
     private boolean lazyCaching;
 
@@ -39,8 +45,39 @@ public class CachedStorage implements Storage {
             @NonNull Storage remote,
             @NonNull Storage local
     ) {
+        this(remote, local, new CachedStorageStates() {
+
+            @Override
+            public void setFullyCached(Storage local, String id, boolean readFully) {
+                if (!readFully) {
+                    try {
+                        local.delete(id);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Error removing bad cache object " + id, e);
+                    }
+                }
+            }
+
+            @Override
+            public boolean isFullyCached(Storage local, String id) {
+                try {
+                    return local.contains(id);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error checking cache object " + id, e);
+                }
+            }
+
+        });
+    }
+
+    public CachedStorage(
+            @NonNull Storage remote,
+            @NonNull Storage local,
+            @NonNull CachedStorageStates cachedStorageStates
+    ) {
         this.remote = remote;
         this.local = local;
+        this.cachedStorageStates = cachedStorageStates;
     }
 
     @Override
@@ -56,7 +93,7 @@ public class CachedStorage implements Storage {
 
     @Override
     public InputStream openInputStream(@NonNull final String id) throws IOException {
-        if (local.contains(id)) {
+        if (cachedStorageStates.isFullyCached(local, id)) {
 
             Log.d(TAG, "Reading " + id + " from local local");
 
@@ -137,9 +174,7 @@ public class CachedStorage implements Storage {
                             dstStream.close();
                         }
 
-                        if (!readFully) {
-                            local.delete(id);
-                        }
+                        cachedStorageStates.setFullyCached(local, id, readFully);
 
                     }
                 }
