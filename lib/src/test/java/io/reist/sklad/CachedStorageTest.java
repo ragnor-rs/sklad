@@ -43,6 +43,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by Reist on 26.06.16.
@@ -59,14 +62,30 @@ public class CachedStorageTest extends BaseNetworkStorageTest<CachedStorage> {
     @NonNull
     protected CachedStorage createStorage() throws IOException {
         return new CachedStorage(
-                NetworkStorageTest.createNetworkStorage(baseUrl),
-                createEncryptedStorage(RuntimeEnvironment.application.getCacheDir())
+                createNetworkStorage(),
+                createEncryptedStorage()
         );
     }
 
     @NonNull
-    static EncryptedStorage createEncryptedStorage(File fileDir) {
-        return EncryptedStorageTest.createEncryptedStorage(new FileStorage(fileDir));
+    protected CachedStorage createStorage(CachedStorageStates cachedStorageStates) throws IOException {
+        return new CachedStorage(
+                createNetworkStorage(),
+                createEncryptedStorage(),
+                cachedStorageStates
+        );
+    }
+
+    @NonNull
+    private EncryptedStorage createEncryptedStorage() {
+        File cacheDir = RuntimeEnvironment.application.getCacheDir();
+        FileStorage fileStorage = new FileStorage(cacheDir);
+        return EncryptedStorageTest.createEncryptedStorage(fileStorage);
+    }
+
+    @NonNull
+    private NetworkStorage createNetworkStorage() throws IOException {
+        return NetworkStorageTest.createNetworkStorage(baseUrl);
     }
 
     @Test
@@ -207,6 +226,88 @@ public class CachedStorageTest extends BaseNetworkStorageTest<CachedStorage> {
         inputStream.close();
 
         TestUtils.assertTestObject(storage.getLocal());
+
+        server.shutdown();
+
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Test
+    public final void testLazyCaching() throws Exception {
+
+        Buffer buffer = new Buffer();
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setBody(buffer));     // respond with actual data
+        server.start();
+
+        baseUrl = server.url("/");
+
+        CachedStorage storage = createStorage();
+        storage.setLazyCaching(true);
+        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME_1);
+        assertNotNull(inputStream);
+        try {
+            while (inputStream.read() != -1);
+        } catch (EOFException ignored) {}
+        inputStream.close();
+
+        assertNull(storage.getLocal().openInputStream(TestUtils.TEST_NAME_1));
+
+        server.shutdown();
+
+    }
+
+    @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
+    @Test
+    public final void testCacheStates() throws Exception {
+
+        Buffer buffer = new Buffer();
+        buffer.readFrom(new ByteArrayInputStream(TestUtils.TEST_DATA_1));
+
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setBody(buffer));     // respond with actual data
+        server.start();
+
+        baseUrl = server.url("/");
+
+        CachedStorageStates cachedStorageStates = mock(CachedStorageStates.class);
+
+        CachedStorage storage = createStorage(cachedStorageStates);
+        InputStream inputStream = storage.openInputStream(TestUtils.TEST_NAME_1);
+        try {
+            while (inputStream.read() != -1);
+        } catch (EOFException ignored) {}
+        inputStream.close();
+
+        verify(
+                cachedStorageStates,
+                times(1)
+        ).isFullyCached(
+                storage.getLocal(),
+                TestUtils.TEST_NAME_1
+        );
+
+        verify(
+                cachedStorageStates,
+                times(1)
+        ).setFullyCached(
+                storage.getLocal(),
+                TestUtils.TEST_NAME_1,
+                true
+        );
+
+        storage.purge(TestUtils.TEST_NAME_1);
+
+        verify(
+                cachedStorageStates,
+                times(1)
+        ).setFullyCached(
+                storage.getLocal(),
+                TestUtils.TEST_NAME_1,
+                false
+        );
 
         server.shutdown();
 

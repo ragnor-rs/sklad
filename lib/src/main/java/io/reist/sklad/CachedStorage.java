@@ -30,8 +30,14 @@ public class CachedStorage implements Storage {
 
     private static final String TAG = CachedStorage.class.getSimpleName();
 
+    @NonNull
     private final Storage remote;
+
+    @NonNull
     private final Storage local;
+
+    @NonNull
+    private final CachedStorageStates cachedStorageStates;
 
     private boolean lazyCaching;
 
@@ -39,8 +45,17 @@ public class CachedStorage implements Storage {
             @NonNull Storage remote,
             @NonNull Storage local
     ) {
+        this(remote, local, new SimpleCachedStorageStates());
+    }
+
+    public CachedStorage(
+            @NonNull Storage remote,
+            @NonNull Storage local,
+            @NonNull CachedStorageStates cachedStorageStates
+    ) {
         this.remote = remote;
         this.local = local;
+        this.cachedStorageStates = cachedStorageStates;
     }
 
     @Override
@@ -56,7 +71,7 @@ public class CachedStorage implements Storage {
 
     @Override
     public InputStream openInputStream(@NonNull final String id) throws IOException {
-        if (local.contains(id)) {
+        if (cachedStorageStates.isFullyCached(local, id)) {
 
             Log.d(TAG, "Reading " + id + " from local local");
 
@@ -113,10 +128,16 @@ public class CachedStorage implements Storage {
 
                     int b = srcStream.read();
 
-                    if (b == -1 || srcStream.available() == 0) {
+                    if (b == -1) {
                         readFully = true;
                     } else {
+
+                        if (srcStream.available() == 0) {
+                            readFully = true;
+                        }
+
                         dstStream.write(b);
+
                     }
 
                     return b;
@@ -137,9 +158,7 @@ public class CachedStorage implements Storage {
                             dstStream.close();
                         }
 
-                        if (!readFully) {
-                            local.delete(id);
-                        }
+                        cachedStorageStates.setFullyCached(local, id, readFully);
 
                     }
                 }
@@ -206,7 +225,7 @@ public class CachedStorage implements Storage {
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
     public void cache(String id) throws IOException {
 
-        if (local.contains(id)) {
+        if (cachedStorageStates.isFullyCached(local, id)) {
             return;
         }
 
@@ -221,6 +240,7 @@ public class CachedStorage implements Storage {
         try {
 
             OutputStream outputStream = local.openOutputStream(id);
+            boolean readFully = false;
 
             try {
 
@@ -232,10 +252,18 @@ public class CachedStorage implements Storage {
                     outputStream.write(buffer, 0, numRead);
                 }
 
-                outputStream.flush();
+                readFully = true;
 
             } finally {
-                outputStream.close();
+
+                try {
+                    outputStream.flush();
+                } finally {
+                    outputStream.close();
+                }
+
+                cachedStorageStates.setFullyCached(local, id, readFully);
+
             }
 
         } finally {
@@ -245,7 +273,11 @@ public class CachedStorage implements Storage {
     }
 
     public boolean purge(@NonNull String id) throws IOException {
-        return local.delete(id);
+        boolean deleted = local.delete(id);
+        if (deleted) {
+            cachedStorageStates.setFullyCached(local, id, false);
+        }
+        return deleted;
     }
 
     public void setLazyCaching(boolean lazyCaching) {
