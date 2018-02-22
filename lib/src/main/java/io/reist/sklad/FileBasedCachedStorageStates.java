@@ -32,11 +32,11 @@ public class FileBasedCachedStorageStates implements CachedStorageStates {
         File marker = getMarkerFile(id);
 
         if (fullyCached) {
-            if (!marker.createNewFile()) {
+            if (!marker.exists() && !marker.createNewFile()) {
                 throw new IOException("Cannot create marker file for " + id);
             }
         } else {
-            if (!marker.delete()) {
+            if (marker.exists() && !marker.delete()) {
                 throw new IOException("Error deleting marker file for " + id);
             }
         }

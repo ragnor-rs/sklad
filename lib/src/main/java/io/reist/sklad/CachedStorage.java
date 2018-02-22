@@ -128,10 +128,16 @@ public class CachedStorage implements Storage {
 
                     int b = srcStream.read();
 
-                    if (b == -1 || srcStream.available() == 0) {
+                    if (b == -1) {
                         readFully = true;
                     } else {
+
+                        if (srcStream.available() == 0) {
+                            readFully = true;
+                        }
+
                         dstStream.write(b);
+
                     }
 
                     return b;
@@ -219,7 +225,7 @@ public class CachedStorage implements Storage {
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
     public void cache(String id) throws IOException {
 
-        if (local.contains(id)) {
+        if (cachedStorageStates.isFullyCached(local, id)) {
             return;
         }
 
@@ -234,6 +240,7 @@ public class CachedStorage implements Storage {
         try {
 
             OutputStream outputStream = local.openOutputStream(id);
+            boolean readFully = false;
 
             try {
 
@@ -245,10 +252,18 @@ public class CachedStorage implements Storage {
                     outputStream.write(buffer, 0, numRead);
                 }
 
-                outputStream.flush();
+                readFully = true;
 
             } finally {
-                outputStream.close();
+
+                try {
+                    outputStream.flush();
+                } finally {
+                    outputStream.close();
+                }
+
+                cachedStorageStates.setFullyCached(local, id, readFully);
+
             }
 
         } finally {
