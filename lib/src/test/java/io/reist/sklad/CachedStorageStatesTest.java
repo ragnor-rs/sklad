@@ -49,11 +49,14 @@ public class CachedStorageStatesTest {
         File cacheDir = RuntimeEnvironment.application.getCacheDir();
         CachedStorageStates cachedStorageStates = new FileBasedCachedStorageStates(cacheDir);
 
-        cachedStorageStates.setFullyCached(null, ID, true);
-        assertTrue(cachedStorageStates.isFullyCached(null, ID));
+        Storage local = mock(Storage.class);
+        when(local.contains(ID)).thenReturn(true).thenReturn(true).thenReturn(false).thenReturn(false);
 
-        cachedStorageStates.setFullyCached(null, ID, false);
-        assertFalse(cachedStorageStates.isFullyCached(null, ID));
+        cachedStorageStates.setFullyCached(local, ID, true);
+        assertTrue(cachedStorageStates.isFullyCached(local, ID));
+
+        cachedStorageStates.setFullyCached(local, ID, false);
+        assertFalse(cachedStorageStates.isFullyCached(local, ID));
 
     }
 
@@ -64,12 +67,12 @@ public class CachedStorageStatesTest {
             private final Map<String, Boolean> stateMap = new HashMap<>();
 
             @Override
-            public void setFullyCached(Storage local, String id, boolean fullyCached) throws IOException {
+            public void setFullyCached(@NonNull Storage local, @NonNull String id, boolean fullyCached) throws IOException {
                 stateMap.put(id, fullyCached);
             }
 
             @Override
-            public boolean isFullyCached(Storage local, String id) {
+            public boolean isFullyCached(@NonNull Storage local, @NonNull String id) {
                 return Boolean.TRUE.equals(stateMap.get(id));
             }
 

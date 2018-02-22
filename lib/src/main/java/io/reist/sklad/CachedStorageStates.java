@@ -1,5 +1,7 @@
 package io.reist.sklad;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 
 /**
@@ -7,6 +9,6 @@ import java.io.IOException;
  */
 
 public interface CachedStorageStates {
-    void setFullyCached(Storage local, String id, boolean fullyCached) throws IOException;
-    boolean isFullyCached(Storage local, String id);
+    void setFullyCached(@NonNull Storage local, @NonNull String id, boolean fullyCached) throws IOException;
+    boolean isFullyCached(@NonNull Storage local, @NonNull String id) throws IOException;
 }

@@ -23,7 +23,7 @@ public class FileBasedCachedStorageStates implements CachedStorageStates {
     }
 
     @Override
-    public void setFullyCached(Storage local, String id, boolean fullyCached) throws IOException {
+    public void setFullyCached(@NonNull Storage local, @NonNull String id, boolean fullyCached) throws IOException {
 
         if (!root.mkdirs() && !root.exists()) {
             throw new IOException("Cache state directory doesn't exist");
@@ -32,7 +32,9 @@ public class FileBasedCachedStorageStates implements CachedStorageStates {
         File marker = getMarkerFile(id);
 
         if (fullyCached) {
-            if (!marker.exists() && !marker.createNewFile()) {
+            if (!local.contains(id)) {
+                throw new IOException("Local storage doesn't contain " + id);
+            } else if (!marker.exists() && !marker.createNewFile()) {
                 throw new IOException("Cannot create marker file for " + id);
             }
         } else {
@@ -49,8 +51,16 @@ public class FileBasedCachedStorageStates implements CachedStorageStates {
     }
 
     @Override
-    public boolean isFullyCached(Storage local, String id) {
-        return getMarkerFile(id).exists();
+    public boolean isFullyCached(@NonNull Storage local, @NonNull String id) throws IOException {
+        File markerFile = getMarkerFile(id);
+        if (markerFile.exists()) {
+            if (local.contains(id)) {
+                return true;
+            } else if (!markerFile.delete()) {
+                throw new IOException("Error deleting marker file for " + id);
+            }
+        }
+        return false;
     }
 
 }

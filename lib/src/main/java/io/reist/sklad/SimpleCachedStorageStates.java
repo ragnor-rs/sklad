@@ -1,5 +1,7 @@
 package io.reist.sklad;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 
 /**
@@ -9,7 +11,7 @@ import java.io.IOException;
 public class SimpleCachedStorageStates implements CachedStorageStates {
 
     @Override
-    public void setFullyCached(Storage local, String id, boolean fullyCached) {
+    public void setFullyCached(@NonNull Storage local, @NonNull String id, boolean fullyCached) {
         if (!fullyCached) {
             try {
                 local.delete(id);
@@ -20,7 +22,7 @@ public class SimpleCachedStorageStates implements CachedStorageStates {
     }
 
     @Override
-    public boolean isFullyCached(Storage local, String id) {
+    public boolean isFullyCached(@NonNull Storage local, @NonNull String id) {
         try {
             return local.contains(id);
         } catch (IOException e) {
