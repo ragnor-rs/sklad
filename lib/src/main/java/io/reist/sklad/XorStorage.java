@@ -56,10 +56,10 @@ public class XorStorage implements JournalingStorage {
             @Override
             public void write(byte[] b, int off, int len) throws IOException {
                 byte[] out = new byte[len];
-                for (int i = 0; i < len; i++) {
-                    out[i] = xorIfNeeded(pos + i, b[off + i], encryptionKey);
+                for (int i = off; i < len; i++) {
+                    out[i] = xorIfNeeded(pos + i, b[i], encryptionKey);
                 }
-                wrappedStream.write(out);
+                wrappedStream.write(out, off, len);
                 pos += len;
             }
 
