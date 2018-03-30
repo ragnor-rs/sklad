@@ -38,8 +38,15 @@ public class FileStorage implements JournalingStorage {
 
     private File parent;
 
+    private long usedSpace;
+
     public FileStorage(@NonNull File parent) {
         this.parent = parent;
+        recalcUsedSpace();
+    }
+
+    private void recalcUsedSpace() {
+        usedSpace = getFolderSize(parent);
     }
 
     @Override
@@ -53,7 +60,18 @@ public class FileStorage implements JournalingStorage {
     public synchronized OutputStream openOutputStream(@NonNull String id) throws IOException {
         File file = getFileById(id);
         file.getParentFile().mkdirs();
-        return new FileOutputStream(file);
+        return new FileOutputStream(file) {
+
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } finally {
+                    recalcUsedSpace();
+                }
+            }
+
+        };
     }
 
     @Nullable
@@ -68,18 +86,26 @@ public class FileStorage implements JournalingStorage {
 
     @Override
     public synchronized boolean delete(@NonNull String id) throws IOException {
-        return getFileById(id).delete();
+        try {
+            return getFileById(id).delete();
+        } finally {
+            recalcUsedSpace();
+        }
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public synchronized void deleteAll() throws IOException {
-        FileUtils.deleteFile(parent);
+        try {
+            FileUtils.deleteFile(parent);
+        } finally {
+            recalcUsedSpace();
+        }
     }
 
     @Override
     public long getUsedSpace() {
-        return getFolderSize(parent);
+        return usedSpace;
     }
 
     @Override
