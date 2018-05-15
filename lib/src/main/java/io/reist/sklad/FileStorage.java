@@ -45,17 +45,19 @@ public class FileStorage implements JournalingStorage {
     private long usedSpace;
 
     public FileStorage(@NonNull File parent) {
-
         this.parent = parent;
-
         recalcUsedSpace();
+        checkFileExistence();
+    }
 
+    private void checkFileExistence() {
         File[] files = parent.listFiles();
-        for (File file : files) {
-            String id = file.getName();
-            this.existenceSet.add(id);
+        if (files != null) {
+            for (File file : files) {
+                String id = file.getName();
+                this.existenceSet.add(id);
+            }
         }
-
     }
 
     private void recalcUsedSpace() {
