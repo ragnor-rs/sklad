@@ -108,7 +108,7 @@ public class FileUtils {
 
         if (to.exists() && !to.isDirectory()) {
             throw new IOException(to.getAbsolutePath() + " is not a directory");
-        } else if (!to.exists() && !to.mkdirs()) {
+        } else if (!to.exists() & !to.mkdirs()) {
             throw new IOException("Can't create " + to.getAbsolutePath());
         }
 

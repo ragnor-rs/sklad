@@ -26,6 +26,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import io.reist.sklad.utils.FileUtils;
 
@@ -36,6 +38,8 @@ import static io.reist.sklad.utils.FileUtils.getFolderSize;
  */
 public class FileStorage implements JournalingStorage {
 
+    private final Set<String> existenceSet = new HashSet<>();
+
     private File parent;
 
     private long usedSpace;
@@ -43,6 +47,17 @@ public class FileStorage implements JournalingStorage {
     public FileStorage(@NonNull File parent) {
         this.parent = parent;
         recalcUsedSpace();
+        checkFileExistence();
+    }
+
+    private void checkFileExistence() {
+        File[] files = parent.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                String id = file.getName();
+                this.existenceSet.add(id);
+            }
+        }
     }
 
     private void recalcUsedSpace() {
@@ -50,14 +65,14 @@ public class FileStorage implements JournalingStorage {
     }
 
     @Override
-    public boolean contains(@NonNull String id) throws IOException {
-        return getFileById(id).exists();
+    public synchronized boolean contains(@NonNull String id) {
+        return existenceSet.contains(id);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @NonNull
     @Override
-    public synchronized OutputStream openOutputStream(@NonNull String id) throws IOException {
+    public synchronized OutputStream openOutputStream(@NonNull final String id) throws IOException {
         File file = getFileById(id);
         file.getParentFile().mkdirs();
         return new FileOutputStream(file) {
@@ -68,6 +83,7 @@ public class FileStorage implements JournalingStorage {
                     super.close();
                 } finally {
                     recalcUsedSpace();
+                    existenceSet.add(id);
                 }
             }
 
@@ -76,7 +92,7 @@ public class FileStorage implements JournalingStorage {
 
     @Nullable
     @Override
-    public InputStream openInputStream(@NonNull String id) throws IOException {
+    public InputStream openInputStream(@NonNull String id) {
         try {
             return new InterruptibleInputStream(new FileInputStream(getFileById(id)));
         } catch (FileNotFoundException e) {
@@ -85,21 +101,23 @@ public class FileStorage implements JournalingStorage {
     }
 
     @Override
-    public synchronized boolean delete(@NonNull String id) throws IOException {
+    public synchronized boolean delete(@NonNull String id) {
         try {
             return getFileById(id).delete();
         } finally {
             recalcUsedSpace();
+            existenceSet.remove(id);
         }
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
-    public synchronized void deleteAll() throws IOException {
+    public synchronized void deleteAll() {
         try {
             FileUtils.deleteFile(parent);
         } finally {
             recalcUsedSpace();
+            existenceSet.clear();
         }
     }
 
