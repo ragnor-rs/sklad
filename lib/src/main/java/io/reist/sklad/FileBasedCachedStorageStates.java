@@ -32,9 +32,7 @@ public class FileBasedCachedStorageStates implements CachedStorageStates {
         File marker = getMarkerFile(id);
 
         if (fullyCached) {
-            if (!local.contains(id)) {
-                throw new IOException("Local storage doesn't contain " + id);
-            } else if (!marker.exists() && !marker.createNewFile()) {
+            if (!marker.exists() && !marker.createNewFile()) {
                 throw new IOException("Cannot create marker file for " + id);
             }
         } else {
