@@ -54,7 +54,7 @@ public class FileStorage implements JournalingStorage {
         File[] files = parent.listFiles();
         if (files != null) {
             for (File file : files) {
-                String id = file.getName();
+                String id = getIdByFile(file);
                 this.existenceSet.add(id);
             }
         }
