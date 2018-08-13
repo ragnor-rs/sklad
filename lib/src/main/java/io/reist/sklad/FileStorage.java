@@ -159,4 +159,8 @@ public class FileStorage implements JournalingStorage {
         this.parent = parent;
     }
 
+    public File getParent() {
+        return parent;
+    }
+
 }
