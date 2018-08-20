@@ -38,7 +38,7 @@ import static io.reist.sklad.utils.FileUtils.getFolderSize;
  */
 public class FileStorage implements JournalingStorage {
 
-    private final Set<String> existenceSet = new HashSet<>();
+    private final Set<String> existingFilenames = new HashSet<>();
 
     private File parent;
     private final FileUtils.Filter filter;
@@ -66,8 +66,7 @@ public class FileStorage implements JournalingStorage {
 
         for (File file : files) {
             if (filter.accept(file)) {
-                String id = getIdByFile(file);
-                this.existenceSet.add(id);
+                this.existingFilenames.add(file.getName());
             }
         }
 
@@ -79,14 +78,14 @@ public class FileStorage implements JournalingStorage {
 
     @Override
     public synchronized boolean contains(@NonNull String id) {
-        return existenceSet.contains(id);
+        return existingFilenames.contains(getFileById(id).getName());
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @NonNull
     @Override
     public synchronized OutputStream openOutputStream(@NonNull final String id) throws IOException {
-        File file = getFileById(id);
+        final File file = getFileById(id);
         file.getParentFile().mkdirs();
         return new FileOutputStream(file) {
 
@@ -96,7 +95,7 @@ public class FileStorage implements JournalingStorage {
                     super.close();
                 } finally {
                     recalculateUsedSpace();
-                    existenceSet.add(id);
+                    existingFilenames.add(file.getName());
                 }
             }
 
@@ -117,14 +116,14 @@ public class FileStorage implements JournalingStorage {
 
     @Override
     public synchronized boolean delete(@NonNull String id) {
+        File file = getFileById(id);
         try {
-            File file = getFileById(id);
             if (filter.accept(file)) {
                 return file.delete();
             }
         } finally {
             recalculateUsedSpace();
-            existenceSet.remove(id);
+            existingFilenames.remove(file.getName());
         }
         return false;
     }
@@ -136,7 +135,7 @@ public class FileStorage implements JournalingStorage {
             FileUtils.deleteFile(parent, filter);
         } finally {
             recalculateUsedSpace();
-            existenceSet.clear();
+            existingFilenames.clear();
         }
     }
 
