@@ -1,5 +1,7 @@
 package io.reist.sklad.utils;
 
+import android.support.annotation.NonNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -8,6 +10,15 @@ import java.util.UUID;
 
 
 public class FileUtils {
+
+    public static final Filter DEFAULT_FILTER = new Filter() {
+
+        @Override
+        public boolean accept(@NonNull File f) {
+            return true;
+        }
+
+    };
 
     private FileUtils() {}
 
@@ -42,38 +53,48 @@ public class FileUtils {
         }
     }
 
-    /**
-     * delete file or directory
-     * <ul>
-     * <li>if path is null or empty, return true</li>
-     * <li>if path not exist, return true</li>
-     * <li>if path exist, delete recursion. return true</li>
-     * <ul>
-     */
+    public static boolean deleteFile(@NonNull File file) {
+        return deleteFile(file, DEFAULT_FILTER);
+    }
+
     @SuppressWarnings("UnusedReturnValue")
-    public static boolean deleteFile(File file) {
+    public static boolean deleteFile(@NonNull File file, @NonNull Filter filter) {
+
         if (!file.exists()) {
             return true;
         }
+
         if (file.isFile()) {
             return file.delete();
         }
+
         if (!file.isDirectory()) {
             return false;
         }
+
         File[] files = file.listFiles();
+
         if (files == null) {
             return false;
         }
+
+        boolean b = true;
+
         for (File f : files) {
+            if (!filter.accept(f)) {
+                continue;
+            }
             if (f.isFile()) {
-                //noinspection ResultOfMethodCallIgnored
-                f.delete();
+                b &= f.delete();
             } else if (f.isDirectory()) {
-                deleteFile(f);
+                b &= deleteFile(f);
             }
         }
-        return file.delete();
+
+        b &= file.delete();
+
+        return b;
+
     }
 
     public static File tempFile(File directory) throws IOException {
@@ -99,8 +120,13 @@ public class FileUtils {
         return length;
     }
 
+    @SuppressWarnings("unused")
+    public static void moveAllFiles(@NonNull File from, @NonNull File to) throws IOException {
+        moveAllFiles(from, to, DEFAULT_FILTER);
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void moveAllFiles(File from, File to) throws IOException {
+    public static void moveAllFiles(@NonNull File from, @NonNull File to, @NonNull Filter filter) throws IOException {
 
         if (!from.exists() || !from.isDirectory()) {
             throw new IOException(from.getAbsolutePath() + " must be an existing directory");
@@ -119,17 +145,24 @@ public class FileUtils {
         }
 
         for (File file : files) {
+            if (!filter.accept(file)) {
+                continue;
+            }
             String absolutePath = file.getAbsolutePath();
             String relative = absolutePath.substring(from.getAbsolutePath().length() + 1);
             File newFile = new File(to, relative);
             if (file.isDirectory()) {
                 System.out.println("create(" + newFile.getAbsoluteFile() + ") = " + newFile.mkdirs());
-                moveAllFiles(file, newFile);
+                moveAllFiles(file, newFile, filter);
             } else {
                 moveFile(file, newFile);
             }
         }
 
     }
-    
+
+    public interface Filter {
+        boolean accept(@NonNull File f);
+    }
+
 }

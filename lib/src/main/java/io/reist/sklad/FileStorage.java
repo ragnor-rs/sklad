@@ -41,26 +41,39 @@ public class FileStorage implements JournalingStorage {
     private final Set<String> existenceSet = new HashSet<>();
 
     private File parent;
+    private final FileUtils.Filter filter;
 
     private long usedSpace;
 
     public FileStorage(@NonNull File parent) {
+        this(parent, FileUtils.DEFAULT_FILTER);
+    }
+
+    public FileStorage(@NonNull File parent, @NonNull FileUtils.Filter filter) {
         this.parent = parent;
-        recalcUsedSpace();
+        this.filter = filter;
+        recalculateUsedSpace();
         checkFileExistence();
     }
 
     private void checkFileExistence() {
+
         File[] files = parent.listFiles();
-        if (files != null) {
-            for (File file : files) {
+
+        if (files == null) {
+            return;
+        }
+
+        for (File file : files) {
+            if (filter.accept(file)) {
                 String id = getIdByFile(file);
                 this.existenceSet.add(id);
             }
         }
+
     }
 
-    private void recalcUsedSpace() {
+    private void recalculateUsedSpace() {
         usedSpace = getFolderSize(parent);
     }
 
@@ -82,7 +95,7 @@ public class FileStorage implements JournalingStorage {
                 try {
                     super.close();
                 } finally {
-                    recalcUsedSpace();
+                    recalculateUsedSpace();
                     existenceSet.add(id);
                 }
             }
@@ -94,29 +107,35 @@ public class FileStorage implements JournalingStorage {
     @Override
     public InputStream openInputStream(@NonNull String id) {
         try {
-            return new InterruptibleInputStream(new FileInputStream(getFileById(id)));
-        } catch (FileNotFoundException e) {
-            return null;
-        }
+            File file = getFileById(id);
+            if (filter.accept(file)) {
+                return new InterruptibleInputStream(new FileInputStream(file));
+            }
+        } catch (FileNotFoundException ignored) {}
+        return null;
     }
 
     @Override
     public synchronized boolean delete(@NonNull String id) {
         try {
-            return getFileById(id).delete();
+            File file = getFileById(id);
+            if (filter.accept(file)) {
+                return file.delete();
+            }
         } finally {
-            recalcUsedSpace();
+            recalculateUsedSpace();
             existenceSet.remove(id);
         }
+        return false;
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public synchronized void deleteAll() {
         try {
-            FileUtils.deleteFile(parent);
+            FileUtils.deleteFile(parent, filter);
         } finally {
-            recalcUsedSpace();
+            recalculateUsedSpace();
             existenceSet.clear();
         }
     }
@@ -128,22 +147,29 @@ public class FileStorage implements JournalingStorage {
 
     @Override
     public String getOldestId() {
-        File oldest = null;
+
         File[] files = parent.listFiles();
-        if (files != null) {
-            for (File file : files) {
 
-                if (file.isDirectory()) {
-                    continue;
-                }
-
-                if (oldest == null || file.lastModified() < oldest.lastModified()) {
-                    oldest = file;
-                }
-
-            }
+        if (files == null) {
+            return null;
         }
+
+        File oldest = null;
+
+        for (File file : files) {
+
+            if (file.isDirectory() || !filter.accept(file)) {
+                continue;
+            }
+
+            if (oldest == null || file.lastModified() < oldest.lastModified()) {
+                oldest = file;
+            }
+
+        }
+
         return oldest == null ? null : getIdByFile(oldest);
+
     }
 
     public File getFileById(@NonNull String id) {
@@ -155,7 +181,7 @@ public class FileStorage implements JournalingStorage {
     }
 
     public synchronized void setParent(File parent) throws IOException {
-        FileUtils.moveAllFiles(this.parent, parent);
+        FileUtils.moveAllFiles(this.parent, parent, filter);
         this.parent = parent;
     }
 
