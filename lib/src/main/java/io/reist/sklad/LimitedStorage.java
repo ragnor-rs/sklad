@@ -35,7 +35,14 @@ public class LimitedStorage implements Storage {
             return new OutputStream() {
 
                 @Override
-                public void write(int b) throws IOException {}
+                public void write(int b) throws IOException {
+                    throw new IOException("Cannot write when capacity is 0");
+                }
+
+                @Override
+                public void flush() throws IOException {
+                    throw new IOException("Cannot flush when capacity is 0");
+                }
 
             };
         } else {

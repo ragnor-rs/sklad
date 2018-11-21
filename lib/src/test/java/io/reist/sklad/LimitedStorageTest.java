@@ -35,6 +35,7 @@ import static io.reist.sklad.TestUtils.TEST_NAME_3;
 import static io.reist.sklad.TestUtils.saveTestObject;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 /**
  * Created by Reist on 28.06.16.
@@ -88,10 +89,17 @@ public class LimitedStorageTest extends BaseStorageTest<LimitedStorage> {
 
     @Test
     public void testDisabledStorage() throws IOException {
+
         LimitedStorage storage = createStorage();
         storage.setCapacity(0);
-        saveTestObject(storage, TEST_NAME_1, TEST_DATA_1);
+
+        try {
+            saveTestObject(storage, TEST_NAME_1, TEST_DATA_1);
+            fail();
+        } catch (IOException ignored) {}
+
         assertFalse(storage.contains(TEST_NAME_1));
+
     }
 
     @Test

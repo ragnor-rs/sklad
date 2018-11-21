@@ -71,7 +71,7 @@ public class CachedStorage implements Storage {
 
     @Override
     public InputStream openInputStream(@NonNull final String id) throws IOException {
-        if (cachedStorageStates.isFullyCached(local, id)) {
+        if (isFullyCached(id)) {
 
             Log.d(TAG, "Reading " + id + " from local local");
 
@@ -93,6 +93,8 @@ public class CachedStorage implements Storage {
 
                 private boolean readFully = false;
 
+                private boolean cacheIsWriteProtected = false;
+
                 @Override
                 public int read(@NonNull byte[] b) throws IOException {
 
@@ -101,7 +103,12 @@ public class CachedStorage implements Storage {
                     if (byteCount == -1 || srcStream.available() == 0) {
                         readFully = true;
                     } else {
-                        dstStream.write(b, 0, byteCount);
+                        try {
+                            dstStream.write(b, 0, byteCount);
+                        } catch (IOException e) {
+                            Log.w(TAG, "Cannot write to cache", e);
+                            cacheIsWriteProtected = true;
+                        }
                     }
 
                     return byteCount;
@@ -116,7 +123,12 @@ public class CachedStorage implements Storage {
                     if (byteCount == -1 || srcStream.available() == 0) {
                         readFully = true;
                     } else {
-                        dstStream.write(b, off, byteCount);
+                        try {
+                            dstStream.write(b, off, byteCount);
+                        } catch (IOException e) {
+                            Log.w(TAG, "Cannot write to cache", e);
+                            cacheIsWriteProtected = true;
+                        }
                     }
 
                     return byteCount;
@@ -136,7 +148,12 @@ public class CachedStorage implements Storage {
                             readFully = true;
                         }
 
-                        dstStream.write(b);
+                        try {
+                            dstStream.write(b);
+                        } catch (IOException e) {
+                            Log.w(TAG, "Cannot write to cache", e);
+                            cacheIsWriteProtected = true;
+                        }
 
                     }
 
@@ -154,11 +171,14 @@ public class CachedStorage implements Storage {
 
                         try {
                             dstStream.flush();
+                        } catch (IOException e) {
+                            Log.w(TAG, "Cannot write to cache", e);
+                            cacheIsWriteProtected = true;
                         } finally {
                             dstStream.close();
                         }
 
-                        cachedStorageStates.setFullyCached(local, id, readFully);
+                        cachedStorageStates.setFullyCached(local, id, readFully && !cacheIsWriteProtected);
 
                     }
                 }
@@ -199,6 +219,10 @@ public class CachedStorage implements Storage {
         }
     }
 
+    public boolean isFullyCached(@NonNull String id) throws IOException {
+        return cachedStorageStates.isFullyCached(local, id);
+    }
+
     @Override
     public boolean delete(@NonNull String id) throws IOException {
         return remote.delete(id) && purge(id);
@@ -225,7 +249,7 @@ public class CachedStorage implements Storage {
     @SuppressWarnings("TryFinallyCanBeTryWithResources")
     public void cache(String id) throws IOException {
 
-        if (cachedStorageStates.isFullyCached(local, id)) {
+        if (isFullyCached(id)) {
             return;
         }
 
