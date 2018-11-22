@@ -106,7 +106,7 @@ public class CachedStorage implements Storage {
                         try {
                             dstStream.write(b, 0, byteCount);
                         } catch (IOException e) {
-                            Log.w(TAG, "Cannot write to cache", e);
+                            Log.d(TAG, "Cannot write to cache", e);
                             cacheIsWriteProtected = true;
                         }
                     }
@@ -126,7 +126,7 @@ public class CachedStorage implements Storage {
                         try {
                             dstStream.write(b, off, byteCount);
                         } catch (IOException e) {
-                            Log.w(TAG, "Cannot write to cache", e);
+                            Log.d(TAG, "Cannot write to cache", e);
                             cacheIsWriteProtected = true;
                         }
                     }
@@ -151,7 +151,7 @@ public class CachedStorage implements Storage {
                         try {
                             dstStream.write(b);
                         } catch (IOException e) {
-                            Log.w(TAG, "Cannot write to cache", e);
+                            Log.d(TAG, "Cannot write to cache", e);
                             cacheIsWriteProtected = true;
                         }
 
@@ -172,7 +172,7 @@ public class CachedStorage implements Storage {
                         try {
                             dstStream.flush();
                         } catch (IOException e) {
-                            Log.w(TAG, "Cannot write to cache", e);
+                            Log.d(TAG, "Cannot write to cache", e);
                             cacheIsWriteProtected = true;
                         } finally {
                             dstStream.close();
